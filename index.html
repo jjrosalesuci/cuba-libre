@@ -55,6 +55,17 @@
       .tc-start-hint { font-size: 9px; color: #c4c4cc; max-width: 420px; }
       @keyframes tc-blink { 50% { opacity: 0; } }
 
+      /* botón de donación (solo en la portada) */
+      .donate { position: fixed; z-index: 25; top: max(10px, env(safe-area-inset-top)); left: max(10px, env(safe-area-inset-left));
+                display: flex; flex-direction: column; gap: 5px; padding: 8px 10px; border-radius: 6px; text-decoration: none;
+                background: #0070ba; border: 2px solid #ffc439; color: #fff; font-family: "Press Start 2P", monospace;
+                box-shadow: 3px 3px 0 #003087; touch-action: manipulation; }
+      .donate:hover { background: #005ea6; }
+      .donate:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #003087; }
+      .donate-title { font-size: clamp(8px, 2.2vh, 18px); }
+      .donate-sub { font-size: clamp(6px, 1.5vh, 12px); color: #ffc439; }
+      @media (min-height: 600px) { .donate { padding: 12px 16px; gap: 8px; } }
+
       .tc-rotate { display: none; }
       @media (orientation: portrait) {
         body.is-touch .tc-root { display: none; }

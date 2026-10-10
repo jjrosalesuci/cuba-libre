@@ -126,7 +126,8 @@ function isStandalone(): boolean {
  * así que se llama desde los eventos de toque (requestFullscreen va antes de cualquier await).
  */
 let fullscreenPending = false;
-function enterFullscreen(): void {
+function enterFullscreen(e?: Event): void {
+  if ((e?.target as Element | null)?.closest?.('.donate')) return; // el enlace de donar abre otra pestaña
   if (!canFullscreen || fullscreenPending || document.fullscreenElement || isStandalone()) return;
   fullscreenPending = true;
   document.documentElement

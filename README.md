@@ -1,5 +1,8 @@
 # De Oriente a Punto Cero
 
+[![Donar con PayPal](https://img.shields.io/badge/Donar-PayPal-blue.svg?logo=paypal)](https://www.paypal.com/donate/?business=jjrosalesuci%40gmail.com&currency_code=USD)
+**Cómprame un café y lo sigo desarrollando.** · Jugar: https://jjrosalesuci.github.io/cuba-libre/
+
 Plataformas 2D en pixel art (estilo SNES) hecho con **Phaser 3 + TypeScript + Vite**.
 Un cubano con chancletas y un palo de escoba recorre la isla de Guantánamo a La Habana.
 Requerimientos completos en [`docs/REQUERIMIENTOS.md`](docs/REQUERIMIENTOS.md).

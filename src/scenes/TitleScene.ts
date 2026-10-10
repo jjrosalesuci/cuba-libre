@@ -6,6 +6,7 @@ import { InputManager } from '../systems/InputManager';
 import { playMusic, sfx } from '../systems/AudioManager';
 import { HERO_FRAMES } from '../systems/Textures';
 import { txt } from '../ui/text';
+import { hideDonate, showDonate } from '../ui/DonateButton';
 import { resetRun } from './BootScene';
 
 const PROJ: Projection = { x: 30, y: 44, w: 260 };
@@ -22,6 +23,9 @@ export class TitleScene extends Phaser.Scene {
   }
 
   create(): void {
+    // botón de donación de PayPal solo en la portada
+    showDonate();
+    this.events.once('shutdown', hideDonate);
     this.started = false;
     this.progress = 0;
     this.inp = new InputManager(this);
