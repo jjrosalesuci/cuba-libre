@@ -30,7 +30,10 @@ npm run preview    # sirve dist/
 En los menús: flechas para elegir, Enter o Espacio para confirmar.
 
 **Móvil:** en pantallas táctiles aparecen una cruceta (se puede deslizar el dedo), **A** = saltar,
-**B** = palo, **II** = pausa y un botón de pantalla completa. Se juega en horizontal; en vertical pide girar el teléfono.
+**B** = palo e **II** = pausa. Al abrir se muestra "TOCA LA PANTALLA PARA JUGAR" y ese toque pone el juego en
+pantalla completa (si se sale, el siguiente toque vuelve a entrar). En iPhone, Safari no lo permite: hay que usar
+Compartir → "Agregar a inicio" y abrirlo desde el ícono (el manifest lo abre a pantalla completa y en horizontal).
+Se juega en horizontal; en vertical pide girar el teléfono.
 Para probar los controles táctiles en la computadora: abrir `http://localhost:5173/?touch`.
 
 ## Estructura

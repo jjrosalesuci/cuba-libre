@@ -111,18 +111,50 @@ function dpad(parent: HTMLElement): void {
   pad.addEventListener('pointercancel', (e) => e.pointerId === pointer && release());
 }
 
-async function toggleFullscreen(): Promise<void> {
-  try {
-    if (document.fullscreenElement) {
-      await document.exitFullscreen();
-    } else {
-      await document.documentElement.requestFullscreen({ navigationUI: 'hide' });
-      // en Android se puede fijar horizontal estando en pantalla completa
-      await (screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> }).lock?.('landscape');
-    }
-  } catch {
-    // iOS Safari no tiene pantalla completa para páginas: se ignora
+const canFullscreen = 'requestFullscreen' in document.documentElement;
+
+/** Abierto como app desde la pantalla de inicio (ya ocupa toda la pantalla). */
+function isStandalone(): boolean {
+  return (
+    window.matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches ||
+    (navigator as Navigator & { standalone?: boolean }).standalone === true
+  );
+}
+
+/**
+ * Pantalla completa forzada. Los navegadores solo la permiten dentro de un toque del usuario,
+ * así que se llama desde los eventos de toque (requestFullscreen va antes de cualquier await).
+ */
+let fullscreenPending = false;
+function enterFullscreen(): void {
+  if (!canFullscreen || fullscreenPending || document.fullscreenElement || isStandalone()) return;
+  fullscreenPending = true;
+  document.documentElement
+    .requestFullscreen({ navigationUI: 'hide' })
+    // en Android se puede fijar horizontal estando en pantalla completa
+    .then(() => (screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> }).lock?.('landscape'))
+    .catch(() => {
+      // rechazado (p. ej. sin gesto válido): se reintenta en el próximo toque
+    })
+    .finally(() => (fullscreenPending = false));
+}
+
+/** Pantalla inicial "TOCA PARA JUGAR": su toque es el gesto que permite la pantalla completa. */
+function startOverlay(): void {
+  if (isStandalone()) return;
+  const overlay = el('div', 'tc-start', document.body);
+  el('div', 'tc-start-title', overlay, 'CUBA LIBRE');
+  el('div', 'tc-start-tap', overlay, 'TOCA LA PANTALLA PARA JUGAR');
+  if (!canFullscreen) {
+    // iPhone: Safari no deja poner páginas en pantalla completa; sí las apps de la pantalla de inicio
+    el('div', 'tc-start-hint', overlay, 'Para jugar a pantalla completa: Compartir → "Agregar a inicio" y ábrelo desde el ícono.');
   }
+  overlay.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    unlockAudio();
+    enterFullscreen();
+    overlay.remove();
+  });
 }
 
 export function initTouchControls(): void {
@@ -141,19 +173,11 @@ export function initTouchControls(): void {
 
   const top = el('div', 'tc-top', root);
   button(top, 'tc-small', 'II', 'start');
-  if ('requestFullscreen' in document.documentElement) {
-    const fs = el('div', 'tc-btn tc-small', top);
-    // ícono de pantalla completa: cuatro esquinas
-    fs.innerHTML =
-      '<svg viewBox="0 0 18 18" fill="none" stroke="#fff" stroke-width="2"><path d="M1 6V1h5M12 1h5v5M17 12v5h-5M6 17H1v-5"/></svg>';
-    fs.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
-      unlockAudio();
-      void toggleFullscreen();
-    });
-  }
 
   el('div', 'tc-rotate', document.body, 'Gira el teléfono para jugar ⟳');
+  startOverlay();
+  // si el jugador sale de la pantalla completa, el siguiente toque vuelve a entrar
+  document.addEventListener('pointerdown', enterFullscreen, true);
 
   // si la app pierde el foco con un dedo apoyado, soltar todo
   const releaseAll = () => (Object.keys(touchState) as Action[]).forEach((a) => press(a, false));

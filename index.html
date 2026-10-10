@@ -2,7 +2,15 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
+    <!-- como app desde la pantalla de inicio: pantalla completa (única forma en iPhone) -->
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Cuba Libre" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
     <title>De Oriente a Punto Cero</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
@@ -38,6 +46,14 @@
       .tc-top .tc-btn { position: static; }
       .tc-small { width: 40px; height: 32px; border-radius: 8px; font-size: 12px; opacity: 0.8; }
       .tc-small svg { width: 18px; height: 18px; }
+
+      .tc-start { position: fixed; inset: 0; z-index: 30; display: flex; flex-direction: column; align-items: center;
+                  justify-content: center; gap: 22px; padding: 24px; text-align: center; background: #05061a;
+                  color: #fff; font: 12px "Press Start 2P", monospace; line-height: 1.8; cursor: pointer; touch-action: none; }
+      .tc-start-title { font-size: 28px; color: #f5d142; text-shadow: 3px 3px 0 #d42a2a; }
+      .tc-start-tap { animation: tc-blink 1s steps(2) infinite; }
+      .tc-start-hint { font-size: 9px; color: #c4c4cc; max-width: 420px; }
+      @keyframes tc-blink { 50% { opacity: 0; } }
 
       .tc-rotate { display: none; }
       @media (orientation: portrait) {
