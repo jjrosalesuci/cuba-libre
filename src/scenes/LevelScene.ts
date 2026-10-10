@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { GAME_W, GAME_H, TILE } from '../config';
 import { LEVELS, LevelConfig } from '../data/levels';
-import { t } from '../i18n';
+import { list, t } from '../i18n';
 import { Hero } from '../entities/Hero';
 import { Guard, GUARD_TYPES } from '../entities/Guard';
 import { BossGuantanamo } from '../entities/Boss';
@@ -62,6 +62,12 @@ export class LevelScene extends Phaser.Scene {
   private checkpoint?: { x: number; y: number };
   private ending = false;
   private nextPot = 0;
+  /** Globo de texto activo sobre el héroe (lo sigue mientras corre). */
+  private bubble?: Phaser.GameObjects.Text;
+  /** Frases al azar mientras avanza: posición y hora a partir de las cuales puede volver a gritar. */
+  private nextShoutX = 0;
+  private nextShoutTime = 0;
+  private lastShout = '';
 
   constructor() {
     super('Level');
@@ -82,6 +88,8 @@ export class LevelScene extends Phaser.Scene {
     this.blackout = undefined;
     this.exitX = Infinity;
     this.ending = false;
+    this.bubble = undefined;
+    this.nextShoutTime = 0;
   }
 
   create(): void {
@@ -335,6 +343,8 @@ export class LevelScene extends Phaser.Scene {
     }
 
     this.bangPots(time);
+    this.randomShout(time);
+    this.followBubble();
     this.updateParallax();
     this.hud.update(hero.health, this.registry.get('lives'), this.registry.get('score'), hero.shield);
   }
@@ -371,14 +381,74 @@ export class LevelScene extends Phaser.Scene {
     for (const tr of this.triggers) {
       if (this.triggered.has(tr.key) || this.hero.x < tr.x || this.hero.dead) continue;
       this.triggered.add(tr.key);
-      const lines = this.cfg.dialogs[tr.key];
-      const onDone = this.boss && !this.bossStarted && tr.key === '1' ? () => this.startBoss() : undefined;
+      const bossIntro = !!this.boss && !this.bossStarted && tr.key === '1';
+      let lines = this.cfg.dialogs[tr.key];
+      // cada vez que se topa con un jefe, el héroe se lo grita en la cara
+      if (bossIntro) lines = [{ who: 'hero', text: t('bossTaunt') }, ...(lines ?? [])];
+      const onDone = bossIntro ? () => this.startBoss() : undefined;
       if (lines) this.dialog.open(lines, onDone);
       else onDone?.();
       return;
     }
-    // si se reaparece en el jefe con el diálogo ya visto, el combate arranca solo
-    if (this.boss && !this.bossStarted && this.triggered.has('1') && !this.dialog.active) this.startBoss();
+    // si se reaparece en el jefe con el diálogo ya visto, el combate arranca solo (con el grito)
+    if (this.boss && !this.bossStarted && this.triggered.has('1') && !this.dialog.active) {
+      this.shout(t('bossTaunt'));
+      this.startBoss();
+    }
+  }
+
+  /** Globo de texto grande sobre la cabeza del héroe. */
+  /** Globo de texto sobre la cabeza del héroe; `loud` agrega sacudón y silbatazo (para los jefes). */
+  private shout(text: string, loud = true): void {
+    this.bubble?.destroy();
+    const bubble = txt(this, this.hero.x, this.hero.y - 34, text, { origin: 0.5, color: '#f5d142', stroke: true })
+      .setDepth(160).setScale(0);
+    this.bubble = bubble;
+    this.followBubble();
+    this.tweens.add({ targets: bubble, scale: 1, duration: 220, ease: 'Back.easeOut' });
+    this.tweens.add({
+      targets: bubble,
+      alpha: 0,
+      delay: 1500,
+      duration: 400,
+      onComplete: () => {
+        bubble.destroy();
+        if (this.bubble === bubble) this.bubble = undefined;
+      },
+    });
+    if (loud) {
+      this.cameras.main.shake(180, 0.006);
+      sfx('whistle');
+    } else {
+      sfx('select');
+    }
+  }
+
+  /** Mantiene el globo sobre el héroe, sin salirse por los bordes del mapa. */
+  private followBubble(): void {
+    const b = this.bubble;
+    if (!b?.active) return;
+    const half = b.width / 2 + 4;
+    b.setPosition(Phaser.Math.Clamp(this.hero.x, half, this.cfg.rows[0].length * TILE - half), this.hero.y - 34);
+  }
+
+  /** Cada cierto trecho de avance el héroe suelta una de sus frases, al azar y sin repetir la última. */
+  private randomShout(time: number): void {
+    const h = this.hero;
+    if (this.boss || this.ending || h.dead || this.dialog.active || this.bubble) return;
+    if (this.nextShoutTime === 0) {
+      // primera frase tras un trecho corto desde donde empieza (o reaparece)
+      this.nextShoutX = h.x + Phaser.Math.Between(180, 300);
+      this.nextShoutTime = time + 3000;
+      return;
+    }
+    if (h.x < this.nextShoutX || time < this.nextShoutTime) return;
+    const options = list('heroShouts').filter((p) => p !== this.lastShout);
+    const phrase = Phaser.Utils.Array.GetRandom(options);
+    this.lastShout = phrase;
+    this.shout(phrase, false);
+    this.nextShoutX = h.x + Phaser.Math.Between(260, 440);
+    this.nextShoutTime = time + 6000;
   }
 
   private startBoss(): void {

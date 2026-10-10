@@ -22,6 +22,14 @@
   "quit": "Salir",
   "checkpoint": "¡PUNTO DE CONTROL!",
   "bossName": "EL SECRETARIO PROVINCIAL",
+  "bossTaunt": "¡Chivatonn!!!",
+  "heroShouts": [
+    "Ya me cansé de estos tipos...",
+    "¡Cuba libre!!!",
+    "¡Abajo los Castro!",
+    "¡So perro!!!",
+    "¡Díaz-Canel singao!!"
+  ],
   "cafe": "+ CAFÉ",
   "colada": "¡COLADA!",
   "cazuela": "¡CAZUELA!",
