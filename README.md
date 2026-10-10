@@ -26,6 +26,10 @@ npm run preview    # sirve dist/
 | Golpe hacia abajo en el aire | ↓ + X | ↓ + X |
 | Pausa / Start | Enter, Esc, P | Start |
 
+**Móvil:** en pantallas táctiles aparecen una cruceta (se puede deslizar el dedo), **A** = saltar,
+**B** = palo, **II** = pausa y un botón de pantalla completa. Se juega en horizontal; en vertical pide girar el teléfono.
+Para probar los controles táctiles en la computadora: abrir `http://localhost:5173/?touch`.
+
 ## Estructura
 
 ```
@@ -68,6 +72,17 @@ tamaño y orden de frames definitivos. Para reemplazarlos:
    en lugar de generarlo (`generateTextures` no sobrescribe texturas que ya existan).
 
 Tamaños: héroe y guardias 24×24, jefe 40×48, ítems 12×12, tiles 16×16, fondos 320×90 / 320×70.
+
+## Publicar en GitHub Pages
+
+El workflow `.github/workflows/deploy.yml` compila y publica el juego en cada push a `main`
+(también se puede lanzar a mano desde la pestaña **Actions** → *Deploy a GitHub Pages* → *Run workflow*).
+
+Configuración, una sola vez:
+1. El repo tiene que ser **público** (o tener GitHub Pro para Pages en repos privados).
+2. **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+
+Dirección del juego: `https://jjrosalesuci.github.io/cuba-libre/`
 
 ## Depuración
 

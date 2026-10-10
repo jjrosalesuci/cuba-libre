@@ -10,6 +10,42 @@
       html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
       #game { width: 100%; height: 100%; }
       canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
+
+      /* ---------- controles táctiles (solo con body.is-touch) ---------- */
+      body.is-touch { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+      .tc-root { position: fixed; inset: 0; pointer-events: none; z-index: 10; font-family: "Press Start 2P", monospace; }
+      .tc-root > * { pointer-events: auto; }
+      .tc-left { position: absolute; left: max(12px, env(safe-area-inset-left)); bottom: 12px; }
+      .tc-right { position: absolute; right: max(12px, env(safe-area-inset-right)); bottom: 12px; width: 44vh; height: 36vh; }
+      .tc-top { position: absolute; right: max(12px, env(safe-area-inset-right)); top: 8px; display: flex; gap: 8px; }
+
+      .tc-dpad { position: relative; width: 34vh; height: 34vh; max-width: 170px; max-height: 170px; min-width: 110px; min-height: 110px;
+                 border-radius: 50%; background: rgba(255,255,255,0.07); border: 2px solid rgba(255,255,255,0.22); touch-action: none; }
+      .tc-arrow { position: absolute; width: 0; height: 0; border: 14px solid transparent; opacity: 0.55; }
+      .tc-arrow.on { opacity: 1; }
+      .tc-d-up    { left: 50%; top: 8%;    transform: translateX(-50%); border-bottom: 18px solid #fff; border-top-width: 0; }
+      .tc-d-down  { left: 50%; bottom: 8%; transform: translateX(-50%); border-top: 18px solid #fff; border-bottom-width: 0; }
+      .tc-d-left  { left: 8%;  top: 50%; transform: translateY(-50%); border-right: 18px solid #fff; border-left-width: 0; }
+      .tc-d-right { right: 8%; top: 50%; transform: translateY(-50%); border-left: 18px solid #fff; border-right-width: 0; }
+
+      .tc-btn { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center;
+                border-radius: 50%; color: #fff; font-size: max(14px, 4vh); touch-action: none; text-shadow: 1px 1px 0 #000;
+                background: rgba(255,255,255,0.14); border: 2px solid rgba(255,255,255,0.35); }
+      .tc-btn.on { background: rgba(245,209,66,0.55); border-color: #f5d142; }
+      .tc-cap { font-size: max(7px, 1.8vh); margin-top: 4px; opacity: 0.85; }
+      .tc-a { width: 19vh; height: 19vh; min-width: 64px; min-height: 64px; right: 0; bottom: 30%; background: rgba(212,42,42,0.30); }
+      .tc-b { width: 19vh; height: 19vh; min-width: 64px; min-height: 64px; left: 0; bottom: 0; background: rgba(31,79,191,0.30); }
+      .tc-top .tc-btn { position: static; }
+      .tc-small { width: 40px; height: 32px; border-radius: 8px; font-size: 12px; opacity: 0.8; }
+      .tc-small svg { width: 18px; height: 18px; }
+
+      .tc-rotate { display: none; }
+      @media (orientation: portrait) {
+        body.is-touch .tc-root { display: none; }
+        body.is-touch .tc-rotate { display: flex; position: fixed; inset: 0; z-index: 20; align-items: center; justify-content: center;
+          padding: 24px; text-align: center; line-height: 2; background: rgba(0,0,0,0.85); color: #f5d142;
+          font: 12px "Press Start 2P", monospace; }
+      }
     </style>
   </head>
   <body>

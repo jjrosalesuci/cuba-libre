@@ -38,6 +38,11 @@ function ac(): AudioContext | null {
   return ctx;
 }
 
+/** Crear/reanudar el audio dentro de un gesto del usuario (toque o tecla). */
+export function unlockAudio(): void {
+  ac();
+}
+
 export function setVolume(v: number): void {
   const vol = Math.max(0, Math.min(1, v));
   save({ volume: vol });

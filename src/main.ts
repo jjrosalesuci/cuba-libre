@@ -7,6 +7,7 @@ import { LevelScene } from './scenes/LevelScene';
 import { PauseScene } from './scenes/PauseScene';
 import { GameOverScene } from './scenes/GameOverScene';
 import { LevelClearScene } from './scenes/LevelClearScene';
+import { initTouchControls } from './systems/TouchControls';
 
 function start(): void {
   const game = new Phaser.Game({
@@ -28,4 +29,5 @@ function start(): void {
 
 // Esperar la fuente pixel para que el texto no salga con la fuente de respaldo.
 const fontReady = document.fonts?.load('8px "Press Start 2P"') ?? Promise.resolve();
+initTouchControls();
 Promise.race([fontReady, new Promise((r) => setTimeout(r, 2500))]).finally(start);

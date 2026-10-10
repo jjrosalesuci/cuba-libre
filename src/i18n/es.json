@@ -3,8 +3,10 @@
   "title2": "A PUNTO CERO",
   "pressStart": "PRESIONA START",
   "controlsHint": "Z: SALTAR  X: PALO  ENTER: PAUSA",
+  "controlsHintTouch": "A: SALTO  B: PALO  II: PAUSA",
   "mapTitle": "MAPA DE LA LIBERACIÓN",
   "mapPlay": "Enter: jugar",
+  "mapPlayTouch": "A: jugar",
   "comingSoon": "PRÓXIMAMENTE",
   "liberated": "LIBERADA",
   "provinceLiberated": "PROVINCIA LIBERADA",
@@ -24,5 +26,6 @@
   "colada": "¡COLADA!",
   "cazuela": "¡CAZUELA!",
   "croqueta": "+1 VIDA",
-  "next": "Enter: seguir"
+  "next": "Enter: seguir",
+  "nextTouch": "A: seguir"
 }

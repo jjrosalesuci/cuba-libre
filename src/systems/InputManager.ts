@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { touchPresses, touchState } from './TouchControls';
 
 export type Action = 'left' | 'right' | 'up' | 'down' | 'jump' | 'attack' | 'start';
 
@@ -24,8 +25,10 @@ export class InputManager {
   private cur: Record<string, boolean> = {};
   /** Pulsaciones vistas desde el último update (aunque la tecla ya se haya soltado). */
   private tapped: Partial<Record<Action, boolean>> = {};
-  /** Estado inyectado por fuentes externas (p. ej. botones táctiles). */
+  /** Estado inyectado por código (pruebas, demos). */
   virtual: Partial<Record<Action, boolean>> = {};
+  /** Últimos contadores de toques vistos, para no perder toques más cortos que un frame. */
+  private seenTouches: Partial<Record<Action, number>> = { ...touchPresses };
 
   constructor(private scene: Phaser.Scene) {
     const kb = scene.input.keyboard!;
@@ -48,7 +51,7 @@ export class InputManager {
   }
 
   private readRaw(a: Action): boolean {
-    if (this.virtual[a]) return true;
+    if (this.virtual[a] || touchState[a]) return true;
     if (this.keys[a].some((k) => k.isDown)) return true;
     const p = this.pad();
     if (!p) return false;
@@ -68,7 +71,10 @@ export class InputManager {
   update(): void {
     for (const a of ACTIONS) {
       this.prev[a] = this.cur[a];
-      this.cur[a] = this.readRaw(a) || !!this.tapped[a];
+      const touches = touchPresses[a] ?? 0;
+      const touchTap = touches !== (this.seenTouches[a] ?? 0);
+      this.seenTouches[a] = touches;
+      this.cur[a] = this.readRaw(a) || !!this.tapped[a] || touchTap;
     }
     this.tapped = {};
   }
