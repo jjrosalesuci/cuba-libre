@@ -55,7 +55,8 @@ export class LevelScene extends Phaser.Scene {
   private hud!: HUD;
   private dialog!: DialogBox;
   private blackout?: Phaser.GameObjects.Rectangle;
-  private parallax: { obj: Phaser.GameObjects.TileSprite; f: number }[] = [];
+  /** f = cuánto sigue a la cámara; drift = deriva propia en px/s (nubes). */
+  private parallax: { obj: Phaser.GameObjects.TileSprite; f: number; drift?: number }[] = [];
   private exitX = Infinity;
   private mapH = 0;
   private checkpoint?: { x: number; y: number };
@@ -109,6 +110,16 @@ export class LevelScene extends Phaser.Scene {
     this.physics.add.overlap(this.hero, this.pickups, (_h, p) => this.collect(p as Phaser.Physics.Arcade.Image));
     this.physics.add.overlap(this.hero, this.guards, (_h, g) => {
       const guard = g as Guard;
+      if (!guard.alive) return;
+      // caerle encima lo derrota y el héroe rebota
+      if (this.hero.isLandingOn(guard.body)) {
+        if (guard.stomp(this.time.now)) {
+          this.hero.pogo();
+          this.addScore(guard.stats.points);
+          floatText(this, guard.x, guard.y - 26, `${guard.stats.points}`);
+        }
+        return;
+      }
       if (guard.harmful) this.hero.hurt(guard.x, guard.stats.damage, this.time.now);
     });
     this.physics.add.overlap(this.hero, this.papers, (_h, p) => {
@@ -142,10 +153,14 @@ export class LevelScene extends Phaser.Scene {
     if (cfg.sky === 'dusk' || cfg.sky === 'dawn') {
       this.add.image(0, 0, 'bg-stars').setOrigin(0).setScrollFactor(0).setDepth(-19).setAlpha(0.35);
     }
+    if (cfg.sky === 'day') {
+      const clouds = this.add.tileSprite(0, 6, GAME_W, 70, 'bg-clouds').setOrigin(0).setScrollFactor(0).setDepth(-19);
+      this.parallax.push({ obj: clouds, f: 0.05, drift: 4 });
+    }
     const mountains = this.add.tileSprite(0, 62, GAME_W, 90, 'bg-mountains').setOrigin(0).setScrollFactor(0).setDepth(-18);
     this.parallax.push({ obj: mountains, f: 0.15 });
-    const near = this.add.tileSprite(0, 92, GAME_W, 70, cfg.theme === 'base' ? 'bg-base' : 'bg-town')
-      .setOrigin(0).setScrollFactor(0).setDepth(-17);
+    const nearKey = { rural: 'bg-rural', base: 'bg-base', town: 'bg-town', hq: 'bg-town' }[cfg.theme];
+    const near = this.add.tileSprite(0, 92, GAME_W, 70, nearKey).setOrigin(0).setScrollFactor(0).setDepth(-17);
     this.parallax.push({ obj: near, f: 0.4 });
   }
 
@@ -247,7 +262,15 @@ export class LevelScene extends Phaser.Scene {
     this.add.image(136, 32, 'hq').setOrigin(0).setDepth(-5);
     this.boss = new BossGuantanamo(this, { balconyX: 232, balconyY: 92, groundY: this.mapH - 2 * TILE, leftX: 44 }, this.papers);
     this.physics.add.overlap(this.hero, this.boss, () => {
-      if (this.boss?.harmful) this.hero.hurt(this.boss.x, 1, this.time.now);
+      const boss = this.boss;
+      if (!boss?.active) return;
+      // al jefe no se le mata de un pisotón: rebota, y si está cansado le quita 1 de vida
+      if (this.hero.isLandingOn(boss.body)) {
+        this.hero.pogo();
+        if (boss.mode === 'tired' && boss.takeHit(-this.time.now, 1)) this.addScore(50);
+        return;
+      }
+      if (boss.harmful) this.hero.hurt(boss.x, 1, this.time.now);
     });
     this.boss.on('defeated', () => this.onBossDefeated());
   }
@@ -427,7 +450,8 @@ export class LevelScene extends Phaser.Scene {
 
   private updateParallax(): void {
     const sx = this.cameras.main.scrollX;
-    for (const { obj, f } of this.parallax) obj.tilePositionX = Math.round(sx * f);
+    const t = this.time.now / 1000;
+    for (const { obj, f, drift } of this.parallax) obj.tilePositionX = Math.round(sx * f + (drift ?? 0) * t);
   }
 
   // ---------------------------------------------------------------- fin de nivel / muerte

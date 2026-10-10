@@ -345,20 +345,31 @@ function drawProps(scene: Phaser.Scene): void {
     // puerta abierta, vacío
     r('#30343c', 12, 1, 4, 24); r(PAL.grayLight, 12, 0, 4, 1);
   });
-  // casa por dentro (fondo de la escena del despertar)
+  // bohío por dentro (fondo de la escena del despertar)
   single(scene, 'house', 224, 120, ({ r }) => {
-    r('#4d3b2c', 0, 0, 224, 120);
-    for (let y = 0; y < 120; y += 12) r('#40301f', 0, y, 224, 1);
-    r('#2a1f14', 0, 0, 224, 6);
-    // ventana
-    r('#1b1f3a', 40, 30, 28, 24); r('#6c7ab0', 41, 31, 1, 22); r('#40301f', 53, 30, 2, 24); r('#40301f', 40, 41, 28, 2);
-    r(PAL.yellow, 60, 34, 2, 2); // luna
-    // bombillo apagado
-    r(PAL.grayDark, 120, 6, 1, 18); r(PAL.gray, 117, 24, 7, 6); r(PAL.grayLight, 118, 25, 2, 2);
-    // puerta
-    r('#6b4423', 196, 50, 22, 70); r('#4a2f18', 198, 52, 18, 66); r(PAL.yellow, 212, 86, 2, 2);
-    // calendario con el Che? no: almanaque viejo
-    r(PAL.white, 150, 36, 16, 20); r(PAL.red, 150, 36, 16, 5);
+    // paredes de tabla de palma
+    r('#8a6a42', 0, 0, 224, 120);
+    for (let x = 0; x < 224; x += 7) r('#6e5232', x, 0, 1, 120);
+    for (let x = 3; x < 224; x += 14) r('#9c7a4e', x, 20, 2, 100);
+    // techo de guano visto desde adentro, con vigas de madera
+    r('#b08a4a', 0, 0, 224, 16);
+    for (let x = 0; x < 224; x += 3) r('#8f6b32', x, 0, 1, 12 + ((x * 7) % 5));
+    r('#5c3a1a', 0, 16, 224, 3);
+    for (const x of [30, 110, 190]) r('#5c3a1a', x, 0, 4, 19);
+    // ventana con postigo abierto: afuera es de día
+    r('#5aa0e0', 40, 34, 28, 22); r('#ffffff', 46, 40, 10, 3); r('#ffffff', 49, 38, 5, 2);
+    r('#4c8a3a', 40, 50, 28, 6); // monte afuera
+    r('#5c3a1a', 38, 32, 32, 2); r('#5c3a1a', 38, 56, 32, 2); r('#5c3a1a', 38, 32, 2, 26); r('#5c3a1a', 68, 32, 2, 26);
+    r('#6b4a2b', 70, 34, 10, 22); // postigo
+    // bombillo apagado colgando de la viga
+    r(PAL.grayDark, 112, 19, 1, 14); r(PAL.gray, 109, 33, 7, 6); r(PAL.grayLight, 110, 34, 2, 2);
+    // puerta de tablas
+    r('#6b4423', 196, 50, 22, 70); r('#4a2f18', 198, 52, 18, 66);
+    for (const y of [60, 84, 108]) r('#6b4423', 198, y, 18, 2);
+    // almanaque viejo, sombrero de yarey colgado y un machete
+    r(PAL.white, 150, 40, 16, 20); r(PAL.red, 150, 40, 16, 5);
+    r('#e0c47a', 128, 44, 14, 3); r('#d4b060', 131, 40, 8, 4);
+    r(PAL.grayLight, 176, 46, 2, 18); r('#3a2814', 176, 64, 2, 5);
   });
   // sede provincial del PCC (fondo del jefe) 176x128
   single(scene, 'hq', 176, 128, ({ r }) => {
@@ -419,14 +430,35 @@ function drawBackgrounds(scene: Phaser.Scene): void {
   gradient(scene, 'sky-day', [[0, '#3f7fd9'], [0.7, '#8ec5f0'], [1, '#d8f0ff']]);
   gradient(scene, 'sky-dusk', [[0, '#3a2a6e'], [0.5, '#d9604a'], [1, '#f7c56a']]);
 
+  // lomas de la Sierra: verde claro al fondo, verde oscuro delante
   single(scene, 'bg-mountains', GAME_W, 90, ({ r }) => {
     for (let x = 0; x < GAME_W; x++) {
-      const far = 40 + ridge(x, [[14, 2, 0.3], [7, 5, 1.1], [3, 11, 2]]);
-      r('#4a5a8c', x, Math.round(far), 1, 90);
-      const near = 58 + ridge(x, [[10, 3, 2.2], [5, 7, 0.4], [2, 17, 1]]);
-      r('#2f6b4f', x, Math.round(near), 1, 90);
-      r('#255940', x, Math.round(near) + 6, 1, 90);
+      const far = Math.round(36 + ridge(x, [[14, 2, 0.3], [7, 5, 1.1], [3, 11, 2]]));
+      r('#9fd67a', x, far, 1, 2); // borde iluminado
+      r('#7cc25e', x, far + 2, 1, 90);
+      r('#68ad4f', x, far + 14 + Math.round(ridge(x, [[3, 9, 0.5]])), 1, 90);
+      const near = Math.round(56 + ridge(x, [[10, 3, 2.2], [5, 7, 0.4], [2, 17, 1]]));
+      r('#3f8f3a', x, near, 1, 2);
+      r('#2e7a2f', x, near + 2, 1, 90);
+      r('#226326', x, near + 10 + Math.round(ridge(x, [[2, 13, 1.7]])), 1, 90);
     }
+  });
+
+  // nubes blancas (tileable): bolas apiladas con sombra azulada abajo
+  single(scene, 'bg-clouds', GAME_W, 70, ({ r }) => {
+    const blob = (cx: number, cy: number, rad: number, c: string) => {
+      for (let dy = -rad; dy <= rad; dy++) {
+        const half = Math.round(Math.sqrt(rad * rad - dy * dy));
+        for (let dx = -half; dx <= half; dx++) r(c, ((cx + dx) % GAME_W + GAME_W) % GAME_W, cy + dy);
+      }
+    };
+    const cloud = (x: number, y: number, s: number) => {
+      const parts: [number, number, number][] = [[0, 2, 6], [8, -2, 8], [18, 0, 7], [26, 3, 5], [12, 4, 6]];
+      for (const [dx, dy, rad] of parts) blob(x + dx * s, y + dy * s + 2, Math.round(rad * s), '#c7dcf0');
+      for (const [dx, dy, rad] of parts) blob(x + dx * s, y + dy * s, Math.round(rad * s), '#ffffff');
+      r('#c7dcf0', x - Math.round(5 * s), y + Math.round(8 * s), Math.round(36 * s), 2);
+    };
+    cloud(20, 18, 1); cloud(120, 40, 0.7); cloud(190, 14, 1.2); cloud(280, 46, 0.6);
   });
 
   const palm = (r: Px, x: number, base: number) => {
@@ -454,6 +486,77 @@ function drawBackgrounds(scene: Phaser.Scene): void {
       i++;
     }
     palm(r, 30, 70); palm(r, 140, 70); palm(r, 250, 70);
+  });
+
+  // Cuba rural: bohíos con techo de guano, palmas reales, matas de plátano y cercas de palo
+  const royalPalm = (r: Px, x: number, base: number, h: number) => {
+    for (let i = 0; i < h; i++) {
+      const bend = Math.round(Math.sin(i / 14) * 1.5);
+      r('#c9c2b0', x + bend, base - i, 2, 1); // tronco liso y claro
+      r('#9d9682', x + bend + 2, base - i, 1, 1);
+    }
+    const top = base - h;
+    r('#5aa83e', x - 1, top, 4, 6); // yagua verde
+    for (const [dx, dy, len] of [[-1, -1, 9], [1, -1, 9], [-1, 1, 8], [1, 1, 8], [0, -1, 6]]) {
+      for (let k = 0; k < len; k++) {
+        r(k < len - 3 ? '#2f7d2c' : '#3f9a3a', x + 1 + dx * k, top - 1 + dy * Math.round(k * k * 0.08) + (dy < 0 ? -1 : 0), 2, 1);
+      }
+    }
+  };
+  const plantain = (r: Px, x: number, base: number) => {
+    r('#7a8f3a', x, base - 14, 3, 14);
+    // hojas anchas que caen en arco hacia los lados
+    for (const side of [-1, 1]) {
+      for (const [len, lift] of [[11, 22], [9, 17]]) {
+        for (let k = 0; k < len; k++) {
+          const y = base - lift + Math.round((k * k) / 12);
+          r('#6cc850', x + 1 + side * (k + 1), y, 1, 3);
+          r('#3f9a3a', x + 1 + side * (k + 1), y + 3, 1, 1);
+        }
+      }
+    }
+    r('#6cc850', x, base - 24, 3, 6);
+  };
+  const bohio = (r: Px, x: number, base: number, w: number) => {
+    const wallH = 14;
+    const roofH = 20;
+    // paredes de tabla de palma
+    r('#b8915e', x, base - wallH, w, wallH);
+    for (let i = 3; i < w; i += 4) r('#8a6a42', x + i, base - wallH, 1, wallH);
+    // puerta y ventana con postigo abierto
+    r('#3a2814', x + 5, base - 11, 7, 11);
+    r('#6b4a2b', x + w - 13, base - 11, 6, 5); r('#2a1c0e', x + w - 12, base - 10, 4, 3); r('#8a6a42', x + w - 7, base - 11, 2, 5);
+    // techo de guano a dos aguas con alero
+    const top = base - wallH - roofH;
+    for (let i = 0; i <= roofH; i++) {
+      const half = Math.round(((w / 2 + 5) * i) / roofH);
+      const cx = x + w / 2;
+      r(i % 3 === 0 ? '#a07a3c' : '#c9a35a', Math.round(cx - half), top + i, half * 2, 1);
+    }
+    for (let i = 0; i < w + 10; i += 3) r('#8a6430', x - 5 + i, base - wallH, 1, 2 + ((i * 7) % 3)); // flecos del guano
+    r('#7d5a2a', Math.round(x + w / 2) - 1, top - 1, 3, 2); // caballete
+  };
+  const fence = (r: Px, x0: number, x1: number, base: number) => {
+    for (let x = x0; x <= x1; x += 6) r('#7a5530', x, base - 9, 2, 9);
+    r('#8a6a42', x0, base - 7, x1 - x0 + 2, 1);
+    r('#8a6a42', x0, base - 3, x1 - x0 + 2, 1);
+  };
+
+  // los ~14 px de abajo de la capa quedan tapados por el suelo del nivel: todo se apoya en y=55
+  single(scene, 'bg-rural', GAME_W, 70, ({ r }) => {
+    const g = 55;
+    r('#4f9e3c', 0, g, GAME_W, 70 - g); // potrero
+    r('#3f8a32', 0, g, GAME_W, 1);
+    royalPalm(r, 8, g, 44);
+    bohio(r, 28, g, 42);
+    plantain(r, 86, g);
+    fence(r, 98, 142, g);
+    royalPalm(r, 152, g, 50);
+    royalPalm(r, 168, g, 38);
+    bohio(r, 188, g, 36);
+    plantain(r, 238, g);
+    royalPalm(r, 254, g, 46);
+    fence(r, 264, 314, g);
   });
 
   single(scene, 'bg-base', GAME_W, 70, ({ r }) => {

@@ -13,13 +13,29 @@ The image must tile seamlessly horizontally: the left edge must continue exactly
 
 ```
 [ESTILO de fondos]
-Parallax background layer: rolling mountains of eastern Cuba (Sierra Maestra style).
-Far range in dusty blue-purple, nearer green hills in front, flat silhouettes with 2-3 shades each.
+Parallax background layer: rolling green mountains of eastern Cuba (Sierra Maestra style).
+Far range in LIGHT green with a sunlit top edge, nearer hills in DARK green in front,
+flat silhouettes with 2-3 shades of green each.
 The top half is magenta (#FF00FF) sky so it can be cut out. Wide panoramic image.
 The image must tile seamlessly horizontally.
 ```
 
-## 7.2 Pueblo (capa cercana de Guantánamo 1-1, 320×70)
+## 7.2 Campo cubano con bohíos (capa cercana de Guantánamo 1-1, 320×70)
+
+El primer nivel empieza en la Cuba rural.
+
+```
+[ESTILO de fondos]
+Parallax background layer of the Cuban countryside: two traditional bohíos (rustic rural huts with
+walls of vertical palm-wood planks and tall, steep thatched roofs of dry palm fronds called guano,
+with a dark doorway and a small wooden-shutter window), tall royal palms with smooth pale gray trunks
+and a bright green crown, plantain plants with big drooping leaves, a rustic wooden stick fence
+and green pasture. Seen straight from the front. Magenta (#FF00FF) sky above.
+Leave the bottom 15% as plain green pasture (it gets covered by the ground).
+The image must tile seamlessly horizontally.
+```
+
+## 7.2b Pueblo (capa cercana de otros niveles y de "provincia liberada", 320×70)
 
 ```
 [ESTILO de fondos]
@@ -45,7 +61,8 @@ Bandas de color planas, sin degradado suave:
 | Archivo | Prompt |
 |---|---|
 | `sky-dawn.png` | `[ESTILO de fondos] Sunrise sky made of horizontal flat color bands: dark indigo at the top, then magenta-pink, orange, pale yellow at the horizon. A few faint stars at the top. 16:9.` |
-| `sky-day.png` | `[ESTILO de fondos] Clear Caribbean day sky in horizontal flat color bands from deep blue at the top to pale cyan at the horizon, two small pixel clouds. 16:9.` |
+| `sky-day.png` | `[ESTILO de fondos] Bright Cuban day sky in horizontal flat color bands from deep blue at the top to pale cyan at the horizon. No clouds (they are a separate layer). 16:9.` |
+| `clouds.png` | `[ESTILO de fondos] Four puffy white pixel-art clouds of different sizes with light blue-gray shading on their undersides, on a magenta (#FF00FF) background, wide 4:1, must tile seamlessly horizontally.` |
 | `sky-dusk.png` | `[ESTILO de fondos] Dusk sky in horizontal flat color bands: purple at the top, red-orange, golden yellow at the horizon. 16:9.` |
 | `sky-night.png` | `[ESTILO de fondos] Night sky in horizontal flat bands from near-black navy to dark purple at the horizon, scattered tiny white and yellow stars. 16:9.` |
 

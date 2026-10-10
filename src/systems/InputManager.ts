@@ -3,13 +3,15 @@ import { touchPresses, touchState } from './TouchControls';
 
 export type Action = 'left' | 'right' | 'up' | 'down' | 'jump' | 'attack' | 'start';
 
+// Teclado: flechas para moverse, ↑ salta, Espacio pega con el palo, Enter pausa.
+// ↑ cuenta como 'up' (menús) y como 'jump' (juego) a la vez.
 const KEYS: Record<Action, string[]> = {
   left: ['LEFT', 'A'],
   right: ['RIGHT', 'D'],
   up: ['UP', 'W'],
   down: ['DOWN', 'S'],
-  jump: ['Z', 'SPACE', 'K'],
-  attack: ['X', 'J'],
+  jump: ['UP', 'W', 'Z'],
+  attack: ['SPACE', 'X', 'J'],
   start: ['ENTER', 'ESC', 'P'],
 };
 
@@ -91,7 +93,11 @@ export class InputManager {
     return !this.cur[a] && this.prev[a];
   }
 
+  /**
+   * Confirmar en menús y diálogos: Enter, palo (Espacio) o salto. Un salto que viene de ↑
+   * no confirma, porque ↑ también sirve para moverse por los menús.
+   */
   anyConfirm(): boolean {
-    return this.justDown('start') || this.justDown('jump') || this.justDown('attack');
+    return this.justDown('start') || this.justDown('attack') || (this.justDown('jump') && !this.justDown('up'));
   }
 }

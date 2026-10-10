@@ -21,10 +21,13 @@ npm run preview    # sirve dist/
 | Acción | Teclado | Mando |
 |---|---|---|
 | Mover | ← → (o A / D) | D-pad / stick |
-| Saltar (mantener = más alto) | Z, Espacio, K | A |
-| Palo (combo x3) | X, J | X / B |
-| Golpe hacia abajo en el aire | ↓ + X | ↓ + X |
+| Saltar (mantener = más alto) | ↑ (también W, Z) | A |
+| Palo (combo x3) | Espacio (también X, J) | X / B |
+| Golpe hacia abajo en el aire | ↓ + Espacio | ↓ + X |
+| Pisotón (caerle encima a un guardia lo derrota) | — | — |
 | Pausa / Start | Enter, Esc, P | Start |
+
+En los menús: flechas para elegir, Enter o Espacio para confirmar.
 
 **Móvil:** en pantallas táctiles aparecen una cruceta (se puede deslizar el dedo), **A** = saltar,
 **B** = palo, **II** = pausa y un botón de pantalla completa. Se juega en horizontal; en vertical pide girar el teléfono.

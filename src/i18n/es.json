@@ -2,7 +2,7 @@
   "title1": "CUBA",
   "title2": "LIBRE",
   "pressStart": "PRESIONA START",
-  "controlsHint": "Z: SALTAR  X: PALO  ENTER: PAUSA",
+  "controlsHint": "ARRIBA: SALTO  ESPACIO: PALO",
   "controlsHintTouch": "A: SALTO  B: PALO  II: PAUSA",
   "mapTitle": "MAPA DE LA LIBERACIÓN",
   "mapPlay": "Enter: jugar",

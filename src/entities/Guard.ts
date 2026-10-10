@@ -18,6 +18,8 @@ export const GUARD_TYPES: Record<'patrol' | 'whistle', GuardStats> = {
   whistle: { hp: 3, speed: 34, damage: 1, detect: 140, points: 150, whistle: true },
 };
 
+let stompCounter = 0;
+
 type State = 'patrol' | 'chase' | 'windup' | 'punch' | 'recover' | 'hurt' | 'dying';
 
 export class Guard extends Phaser.Physics.Arcade.Sprite {
@@ -144,6 +146,11 @@ export class Guard extends Phaser.Physics.Arcade.Sprite {
     const b = this.body;
     const w = 14;
     return new Phaser.Geom.Rectangle(this.dir > 0 ? b.right : b.left - w, b.top + 4, w, 10);
+  }
+
+  /** Pisotón desde arriba: lo derrota de una vez. */
+  stomp(time: number): boolean {
+    return this.takeHit(-(++stompCounter), this.hp, this.x, 0, time);
   }
 
   /** Devuelve true si el golpe lo derrotó. */

@@ -20,7 +20,7 @@ export interface Line {
   text: string;
 }
 
-export type Theme = 'town' | 'base' | 'hq';
+export type Theme = 'rural' | 'town' | 'base' | 'hq';
 
 export interface LevelConfig {
   id: string;
@@ -136,8 +136,8 @@ export const LEVELS: Record<string, LevelConfig> = {
     province: 'guantanamo',
     title: 'GUANTÁNAMO 1-1',
     subtitle: 'EL DESPERTAR',
-    theme: 'town',
-    sky: 'dawn',
+    theme: 'rural',
+    sky: 'day',
     music: 'level',
     rows: l11.build(),
     blackoutUntilCol: 14,

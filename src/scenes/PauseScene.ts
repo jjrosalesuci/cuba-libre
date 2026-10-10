@@ -48,7 +48,7 @@ export class PauseScene extends Phaser.Scene {
       this.resume();
       return;
     }
-    if (this.inp.justDown('jump') || this.inp.justDown('attack') || this.inp.justDown('start')) {
+    if (this.inp.anyConfirm()) {
       switch (OPTIONS[this.idx]) {
         case 'resume': this.resume(); break;
         case 'restart': {

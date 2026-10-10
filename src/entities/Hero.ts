@@ -150,6 +150,11 @@ export class Hero extends Phaser.Physics.Arcade.Sprite {
     return { rect, id: a.id, damage: finisher ? 2 : 1, knock: finisher ? 200 : 110, kind: a.kind };
   }
 
+  /** ¿Viene cayendo sobre la cabeza de ese cuerpo? (para pisotones) */
+  isLandingOn(other: Phaser.Physics.Arcade.Body): boolean {
+    return !this.dead && this.body.velocity.y > 0 && this.body.bottom <= other.top + 10;
+  }
+
   /** Rebote al pegar hacia abajo sobre un enemigo. */
   pogo(): void {
     this.body.velocity.y = -260;

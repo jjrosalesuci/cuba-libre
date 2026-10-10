@@ -76,7 +76,7 @@ export class MapScene extends Phaser.Scene {
     if (this.inp.justDown('left') || this.inp.justDown('down')) this.move(1);
     if (this.inp.justDown('right') || this.inp.justDown('up')) this.move(-1);
 
-    if (this.inp.justDown('start') || this.inp.justDown('jump')) {
+    if (this.inp.anyConfirm()) {
       const p = PROVINCES[this.cursor];
       if (!p.firstLevel) {
         sfx('hurt');

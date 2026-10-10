@@ -64,7 +64,7 @@ export class TitleScene extends Phaser.Scene {
     this.progress = Math.min(1, this.progress + delta / 4000);
     this.drawPath();
 
-    if (!this.started && (this.inp.justDown('start') || this.inp.justDown('jump'))) {
+    if (!this.started && (this.inp.anyConfirm() || this.inp.justDown('jump'))) {
       this.started = true;
       playMusic('title');
       sfx('select');
