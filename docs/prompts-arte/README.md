@@ -16,6 +16,7 @@ inglés porque así responde mejor; las notas van en español.
 | 6 | [06-escenografia.md](06-escenografia.md) | Tiles, camión, refri, bandera, cartel, casa, sede del PCC | varios |
 | 7 | [07-fondos.md](07-fondos.md) | Fondos de parallax (montañas, pueblo, base militar) | 320×90 / 320×70 |
 | 8 | [08-pantallas.md](08-pantallas.md) | Pantalla de título y arte promocional | 320×180 |
+| 9 | [09-santiago.md](09-santiago.md) | Santiago: policía, oficial del MININT, autos, quiosco, edificio y ciudad | varios |
 
 ## Cómo trabajar en ChatGPT
 

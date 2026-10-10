@@ -1,12 +1,15 @@
 const KEY = 'dopc-save-v1';
 
 export interface SaveData {
+  /** Provincias con el jefe vencido (desbloquean la siguiente en el mapa). */
   liberated: string[];
+  /** Niveles completados (p. ej. '1-1'): al volver se sigue desde el primero que falte. */
+  completed: string[];
   best: number;
   volume: number;
 }
 
-const DEFAULTS: SaveData = { liberated: [], best: 0, volume: 0.6 };
+const DEFAULTS: SaveData = { liberated: [], completed: [], best: 0, volume: 0.6 };
 
 let cache: SaveData | null = null;
 
@@ -30,6 +33,13 @@ export function save(patch: Partial<SaveData>): SaveData {
     // almacenamiento bloqueado: el juego sigue funcionando sin guardar
   }
   return data;
+}
+
+/** Guarda un nivel completado (y el récord) en cuanto se termina. */
+export function completeLevel(levelId: string, score: number): void {
+  const d = load();
+  const completed = d.completed.includes(levelId) ? d.completed : [...d.completed, levelId];
+  save({ completed, best: Math.max(d.best, score) });
 }
 
 export function liberate(provinceId: string, score: number): void {

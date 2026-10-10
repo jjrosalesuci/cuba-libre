@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { GAME_W } from '../config';
-import { PROVINCES, drawIsland, project, Projection } from '../data/cuba';
+import { PROVINCES, Province, drawIsland, project, Projection } from '../data/cuba';
+import { provinceLevels } from '../data/levels';
 import { t } from '../i18n';
 import { InputManager } from '../systems/InputManager';
 import { playMusic, sfx } from '../systems/AudioManager';
@@ -60,12 +61,28 @@ export class MapScene extends Phaser.Scene {
     this.refresh();
   }
 
+  /**
+   * Nivel con el que se entra a la provincia: si ya está liberada, desde el principio;
+   * si no, el primero que todavía no se completó (el progreso se guarda nivel a nivel).
+   */
+  private entryLevel(p: Province): string | undefined {
+    if (!p.firstLevel) return undefined;
+    const levels = provinceLevels(p.firstLevel);
+    if (load().liberated.includes(p.id)) return levels[0];
+    const done = load().completed;
+    return levels.find((id) => !done.includes(id)) ?? levels[0];
+  }
+
   private refresh(): void {
     const p = PROVINCES[this.cursor];
     const liberated = load().liberated.includes(p.id);
+    const entry = this.entryLevel(p);
+    const resuming = !!entry && !liberated && entry !== p.firstLevel;
     this.name.setText(p.name);
-    this.status.setText(liberated ? `${t('liberated')}  -  ${t('mapPlay')}` : p.firstLevel ? t('mapPlay') : t('comingSoon'));
-    this.status.setColor(liberated ? '#7bd389' : p.firstLevel ? '#ffffff' : '#8a8a96');
+    this.status.setText(
+      liberated ? `${t('liberated')}  -  ${t('mapPlay')}` : resuming ? `${t('mapContinue')} ${entry}` : entry ? t('mapPlay') : t('comingSoon'),
+    );
+    this.status.setColor(liberated ? '#7bd389' : resuming ? '#f5d142' : entry ? '#ffffff' : '#8a8a96');
   }
 
   update(time: number): void {
@@ -78,7 +95,8 @@ export class MapScene extends Phaser.Scene {
 
     if (this.inp.anyConfirm()) {
       const p = PROVINCES[this.cursor];
-      if (!p.firstLevel) {
+      const entry = this.entryLevel(p);
+      if (!entry) {
         sfx('hurt');
         this.cameras.main.shake(120, 0.005);
         return;
@@ -86,7 +104,7 @@ export class MapScene extends Phaser.Scene {
       sfx('select');
       this.leaving = true;
       this.cameras.main.fadeOut(400);
-      this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('Level', { levelId: p.firstLevel }));
+      this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('Level', { levelId: entry }));
     }
   }
 

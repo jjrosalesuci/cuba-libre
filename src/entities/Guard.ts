@@ -11,11 +11,19 @@ export interface GuardStats {
   detect: number;
   points: number;
   whistle: boolean;
+  /** Textura y animación `${texture}-walk`. */
+  texture: string;
+  /** Alcance del golpe en px (la tonfa llega más lejos que el puño). */
+  reach: number;
 }
 
-export const GUARD_TYPES: Record<'patrol' | 'whistle', GuardStats> = {
-  patrol: { hp: 3, speed: 40, damage: 1, detect: 110, points: 100, whistle: false },
-  whistle: { hp: 3, speed: 34, damage: 1, detect: 140, points: 150, whistle: true },
+export type GuardKind = 'patrol' | 'whistle' | 'police';
+
+export const GUARD_TYPES: Record<GuardKind, GuardStats> = {
+  patrol: { hp: 3, speed: 40, damage: 1, detect: 110, points: 100, whistle: false, texture: 'guard', reach: 14 },
+  whistle: { hp: 3, speed: 34, damage: 1, detect: 140, points: 150, whistle: true, texture: 'guard-whistle', reach: 14 },
+  // policía de Santiago: algo más rápido y con tonfa
+  police: { hp: 3, speed: 46, damage: 1, detect: 130, points: 120, whistle: false, texture: 'police', reach: 20 },
 };
 
 let stompCounter = 0;
@@ -39,7 +47,7 @@ export class Guard extends Phaser.Physics.Arcade.Sprite {
     readonly stats: GuardStats,
     private layer: Phaser.Tilemaps.TilemapLayer,
   ) {
-    const key = stats.whistle ? 'guard-whistle' : 'guard';
+    const key = stats.texture;
     super(scene, x, y, key, 0);
     this.texKey = key;
     this.hp = stats.hp;
@@ -83,7 +91,7 @@ export class Guard extends Phaser.Physics.Arcade.Sprite {
       case 'chase':
         this.dir = dx < 0 ? -1 : 1;
         b.velocity.x = this.blockedAhead() ? 0 : this.dir * this.stats.speed * 1.6;
-        if (dist < 24 && sameLevel) this.enter('windup', time, 320);
+        if (dist < 10 + this.stats.reach && sameLevel) this.enter('windup', time, 320);
         else if (!sees && dist > this.stats.detect * 1.5) this.mode = 'patrol';
         break;
       case 'windup':
@@ -144,7 +152,7 @@ export class Guard extends Phaser.Physics.Arcade.Sprite {
   getPunchBox(): Phaser.Geom.Rectangle | null {
     if (this.mode !== 'punch') return null;
     const b = this.body;
-    const w = 14;
+    const w = this.stats.reach;
     return new Phaser.Geom.Rectangle(this.dir > 0 ? b.right : b.left - w, b.top + 4, w, 10);
   }
 

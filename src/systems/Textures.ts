@@ -224,25 +224,138 @@ function drawBoss(p: Painter, pose: BossPose): void {
 
 export const BOSS_FRAMES = { idle: 0, idle2: 1, throw: 2, charge: 3, tired: 4 } as const;
 
+// ------------------------------------------------------------------ policía (Santiago)
+
+/** Policía de uniforme azul con tonfa. Mismas poses y orden que el guardia. */
+function drawPolice(p: Painter, pose: GuardPose, skin: string): void {
+  const { r, line } = p;
+  const navy = '#1d2f6b';
+  const blue = '#3a62c4';
+  const blueLight = '#5a82e0';
+  // piernas y zapatos
+  if (pose === 'walkB') {
+    r(navy, 9, 16, 3, 5); r(navy, 12, 16, 3, 5);
+    r(PAL.boot, 8, 21, 4, 3); r(PAL.boot, 13, 21, 4, 3);
+  } else if (pose === 'hurt') {
+    r(navy, 7, 16, 3, 4); r(navy, 14, 16, 3, 4);
+    r(PAL.boot, 6, 20, 4, 3); r(PAL.boot, 15, 20, 4, 3);
+  } else {
+    r(navy, 8, 16, 3, 5); r(navy, 13, 16, 3, 5);
+    r(PAL.boot, 7, 21, 4, 3); r(PAL.boot, 13, 21, 4, 3);
+  }
+  // camisa azul, cinturón y chapa
+  r(blue, 8, 8, 8, 8);
+  r(blueLight, 9, 9, 2, 3);
+  r(navy, 8, 8, 8, 1);
+  r(PAL.boot, 8, 14, 8, 1);
+  r(PAL.yellow, 13, 10, 2, 2);
+  // brazo y tonfa (palo negro con mango lateral)
+  switch (pose) {
+    case 'windup':
+      r(blue, 5, 6, 3, 3); r(skin, 5, 5, 2, 1);
+      line('#111111', 6, 5, 3, 0); r('#111111', 4, 2, 2, 1);
+      break;
+    case 'punch':
+      r(blue, 16, 10, 4, 2); r(skin, 19, 10, 2, 2);
+      r('#111111', 20, 9, 4, 2); r('#111111', 20, 11, 1, 3);
+      break;
+    case 'hurt':
+      r(blue, 16, 6, 2, 3); r(skin, 17, 5, 1, 1); r(blue, 6, 6, 2, 3);
+      break;
+    default:
+      r(blue, 15, 9, 2, 5); r(skin, 15, 14, 2, 1);
+      r('#111111', 16, 13, 1, 8); r('#111111', 14, 15, 2, 1);
+  }
+  // cara
+  r(skin, 9, 2, 6, 6);
+  r(PAL.black, 13, 4);
+  if (pose === 'hurt') { r(PAL.black, 12, 4); r(PAL.black, 14, 4); r(PAL.redDark, 12, 6, 2, 1); }
+  else r(PAL.hair, 12, 6, 3, 1);
+  // gorra de plato azul con visera negra
+  r(navy, 8, 0, 8, 2);
+  r(blue, 9, 0, 6, 1);
+  r(PAL.yellow, 12, 1, 1, 1);
+  r('#111111', 13, 2, 4, 1);
+}
+
+type MinintPose = 'idle' | 'idle2' | 'command' | 'walk' | 'hurt';
+
+/** Oficial del MININT: uniforme verde olivo, gorra de plato con banda roja, gafas oscuras y medallas. */
+function drawMinint(p: Painter, pose: MinintPose): void {
+  const { r } = p;
+  const olive = '#55652a', oliveDark = '#3c4720', oliveLight = '#71833c';
+  const skin = PAL.skinLight;
+  const dy = pose === 'idle2' ? 1 : 0;
+  // botas y pantalón
+  if (pose === 'walk') {
+    r(PAL.boot, 7, 44, 9, 4); r(PAL.boot, 25, 44, 9, 4);
+    r(oliveDark, 9, 36, 7, 8); r(oliveDark, 25, 36, 7, 8);
+  } else {
+    r(PAL.boot, 10, 44, 9, 4); r(PAL.boot, 22, 44, 9, 4);
+    r(oliveDark, 11, 36, 7, 8); r(oliveDark, 22, 36, 7, 8);
+  }
+  // guerrera con barriga
+  r(olive, 11, 14 + dy, 18, 4);
+  r(olive, 8, 18 + dy, 24, 15);
+  r(olive, 10, 33, 20, 4);
+  r(oliveLight, 10, 20 + dy, 3, 10);
+  r(oliveDark, 19, 15 + dy, 2, 20);
+  for (const y of [20, 25, 30]) r(PAL.yellow, 20, y + dy, 1, 1);
+  // cinturón con funda
+  r('#3a2414', 8, 31, 24, 2); r(PAL.yellow, 19, 31, 2, 2); r('#5a3a20', 27, 32, 4, 5);
+  // medallas y charreteras doradas
+  r(PAL.red, 12, 19 + dy, 2, 3); r(PAL.yellow, 14, 19 + dy, 2, 3); r(PAL.blue, 16, 19 + dy, 2, 3);
+  r(PAL.yellow, 9, 15 + dy, 5, 2); r(PAL.yellow, 27, 15 + dy, 5, 2);
+  // brazos
+  if (pose === 'command') {
+    r(olive, 30, 18, 9, 4); r(skin, 38, 18, 2, 4);           // brazo señalando al frente
+    r(olive, 4, 18, 4, 10); r(skin, 4, 28, 4, 3); r('#222', 3, 24, 3, 6); // walkie-talkie
+  } else if (pose === 'hurt') {
+    r(olive, 32, 10, 4, 9); r(skin, 32, 8, 4, 2);
+    r(olive, 4, 10, 4, 9); r(skin, 4, 8, 4, 2);
+  } else {
+    r(olive, 32, 18 + dy, 4, 12); r(skin, 32, 30 + dy, 4, 3);
+    r(olive, 4, 18 + dy, 4, 12); r(skin, 4, 30 + dy, 4, 3);
+  }
+  // cabeza
+  const hy = pose === 'hurt' ? 1 : dy;
+  r(skin, 13, 4 + hy, 14, 10);
+  r('#d98b6a', 15, 10 + hy, 2, 2); r('#d98b6a', 24, 10 + hy, 2, 2);
+  if (pose === 'hurt') {
+    r(PAL.black, 15, 7 + hy, 4, 2); r(PAL.black, 23, 6 + hy, 4, 2); // gafas torcidas
+    r(PAL.redDark, 19, 11 + hy, 4, 2);
+  } else {
+    r(PAL.black, 14, 7 + hy, 5, 2); r(PAL.black, 21, 7 + hy, 5, 2); r(PAL.black, 19, 7 + hy, 2, 1);
+    r(PAL.hair, 18, 11 + hy, 5, 1); // bigote
+  }
+  // gorra de plato con banda roja y escudo
+  r(olive, 11, 0 + hy, 18, 3);
+  r(PAL.red, 12, 3 + hy, 16, 2);
+  r(PAL.yellow, 19, 1 + hy, 2, 2);
+  r('#111111', 22, 5 + hy, 8, 1);
+}
+
+export const MININT_FRAMES = { idle: 0, idle2: 1, command: 2, walk: 3, hurt: 4 } as const;
+
 // ------------------------------------------------------------------ vecinos
 
-function drawNeighbor(p: Painter, shirt: string, hair: string, up: boolean): void {
+function drawNeighbor(p: Painter, shirt: string, hair: string, up: boolean, skin: string = PAL.skin): void {
   const { r } = p;
-  r(PAL.skin, 9, 17, 2, 6); r(PAL.skin, 13, 17, 2, 6);
+  r(skin, 9, 17, 2, 6); r(skin, 13, 17, 2, 6);
   r(PAL.flip, 8, 23, 3, 1); r(PAL.flip, 13, 23, 3, 1);
   r(PAL.grayDark, 8, 15, 8, 3);
   r(shirt, 8, 8, 8, 8);
-  r(PAL.skin, 10, 7, 3, 1);
-  r(PAL.skin, 9, 2, 6, 5);
+  r(skin, 10, 7, 3, 1);
+  r(skin, 9, 2, 6, 5);
   r(PAL.black, 13, 4);
   r(hair, 8, 0, 7, 2); r(hair, 8, 2, 1, 3);
   // cazuela y cuchara
   if (up) {
-    r(PAL.skin, 15, 3, 1, 5); r(PAL.skin, 7, 3, 1, 5);
+    r(skin, 15, 3, 1, 5); r(skin, 7, 3, 1, 5);
     r(PAL.gray, 5, 0, 5, 3); r(PAL.grayLight, 5, 0, 5, 1);
     r(PAL.grayLight, 16, 0, 1, 4);
   } else {
-    r(PAL.skin, 15, 8, 1, 5); r(PAL.skin, 7, 8, 1, 5);
+    r(skin, 15, 8, 1, 5); r(skin, 7, 8, 1, 5);
     r(PAL.gray, 4, 12, 5, 3); r(PAL.grayLight, 4, 12, 5, 1);
     r(PAL.grayLight, 16, 9, 2, 1);
   }
@@ -250,7 +363,7 @@ function drawNeighbor(p: Painter, shirt: string, hair: string, up: boolean): voi
 
 // ------------------------------------------------------------------ ítems
 
-export const ITEM_FRAMES = { cafe: 0, colada: 1, cazuela: 2, croqueta: 3, coin: 4, paper: 5, star: 6 } as const;
+export const ITEM_FRAMES = { cafe: 0, colada: 1, cazuela: 2, croqueta: 3, coin: 4, paper: 5, star: 6, guarapo: 7 } as const;
 
 function drawItems(scene: Phaser.Scene): void {
   sheet(scene, 'items', 12, 12, [
@@ -285,6 +398,12 @@ function drawItems(scene: Phaser.Scene): void {
     // estrella (mareo)
     ({ r }) => {
       r(PAL.yellow, 5, 1, 2, 10); r(PAL.yellow, 1, 5, 10, 2); r(PAL.yellow, 3, 3, 6, 6);
+    },
+    // vaso de guarapo con hielo y pajita
+    ({ r }) => {
+      r(PAL.grayLight, 2, 3, 8, 9); r('#c8d84a', 3, 4, 6, 7); r('#a4b832', 3, 9, 6, 2);
+      r(PAL.white, 4, 5, 2, 2); r(PAL.white, 7, 7, 1, 1);
+      r(PAL.red, 7, 0, 1, 4); r(PAL.red, 8, 0, 2, 1);
     },
   ]);
 }
@@ -385,6 +504,47 @@ function drawProps(scene: Phaser.Scene): void {
     for (let x = 36; x < 140; x += 8) r(PAL.yellow, x, 6, 4, 3);
     // puerta grande
     r('#5a3a20', 72, 84, 32, 44); r('#3e2814', 87, 84, 2, 44);
+  });
+  // almendrones: autos americanos de los 50 estacionados (sirven de plataforma)
+  const carColors: [string, string][] = [['#d9534f', '#a33a37'], ['#5bc0de', '#3a8fa8'], ['#f0c23a', '#b8902a'], ['#7bd389', '#4f9e5e']];
+  carColors.forEach(([c, dark], i) =>
+    single(scene, `car${i}`, 48, 22, ({ r }) => {
+      r(c, 12, 2, 22, 7); r('#9fd3e6', 15, 3, 7, 5); r('#9fd3e6', 24, 3, 7, 5); r(dark, 22, 3, 2, 6); // cabina
+      r(c, 1, 9, 46, 8); r(dark, 1, 15, 46, 2); // carrocería
+      r(c, 40, 6, 6, 3); r(dark, 44, 6, 2, 2); // cola con aleta
+      r('#d0d0d8', 0, 12, 2, 4); r('#d0d0d8', 46, 12, 2, 4); // defensas cromadas
+      r('#ffffff', 2, 10, 3, 2); r(PAL.red, 44, 10, 2, 2); // farol y luz trasera
+      r('#d0d0d8', 6, 12, 36, 1); // moldura
+      for (const x of [6, 34]) { r(PAL.boot, x, 15, 9, 7); r('#e8e8e8', x + 2, 17, 5, 3); r(PAL.grayDark, x + 3, 18, 3, 1); }
+    }),
+  );
+  // quiosco de guarapo con trapiche (el letrero GUARAPO se escribe con texto encima)
+  single(scene, 'kiosk', 64, 44, ({ r }) => {
+    for (let x = 0; x < 64; x += 8) r(x % 16 === 0 ? PAL.red : PAL.white, x, 0, 8, 6); // toldo a rayas
+    r('#b52a2a', 0, 6, 64, 1);
+    r('#2a6b27', 1, 7, 62, 11); r(PAL.yellow, 1, 7, 62, 1); r(PAL.yellow, 1, 17, 62, 1); // letrero
+    r('#7a5530', 3, 18, 2, 26); r('#7a5530', 59, 18, 2, 26);
+    r('#6b4423', 2, 30, 60, 14); r('#8a6a42', 2, 30, 60, 2); // mostrador
+    for (let x = 6; x < 60; x += 8) r('#5c3a1a', x, 32, 1, 12);
+    r('#3f8f3a', 8, 22, 2, 8); r('#3f8f3a', 11, 21, 2, 9); r('#3f8f3a', 14, 23, 2, 7); // cañas
+    r(PAL.gray, 40, 21, 10, 9); r(PAL.grayDark, 44, 19, 2, 11); r(PAL.grayLight, 41, 22, 8, 1); // trapiche
+    for (const x of [24, 30]) { r(PAL.grayLight, x, 25, 4, 5); r('#c8d84a', x + 1, 26, 2, 3); } // vasos
+  });
+  // edificio del MININT: concreto gris, balcón al centro, puerta abajo y tablero para el letrero
+  single(scene, 'minint', 176, 128, ({ r }) => {
+    r('#8c8c94', 0, 16, 176, 112); r('#a4a4ac', 0, 16, 176, 3);
+    r('#74747c', 0, 64, 176, 4);
+    r('#7c7c84', 0, 0, 176, 16); r('#5c5c64', 0, 14, 176, 2);
+    for (const x of [8, 34, 112, 138]) for (const y of [24, 40]) { r('#2e3440', x, y, 22, 12); r('#4a5468', x + 2, y + 2, 4, 8); }
+    for (const x of [8, 34, 112, 138]) { r('#2e3440', x, 80, 22, 26); r('#4a5468', x + 2, 82, 4, 22); }
+    // balcón del 2.º piso donde manda el oficial
+    r(PAL.grayDark, 66, 60, 60, 4); for (let x = 68; x < 126; x += 6) r(PAL.grayDark, x, 50, 2, 10); r(PAL.grayDark, 66, 48, 60, 2);
+    // tablero del letrero
+    r('#1d2f6b', 50, 1, 76, 14); r(PAL.yellow, 50, 1, 76, 1); r(PAL.yellow, 50, 14, 76, 1);
+    // antena de vigilancia
+    r(PAL.grayDark, 158, 0, 2, 16);
+    // puerta de donde salen los policías
+    r('#26303a', 72, 84, 32, 44); r('#3a4654', 74, 86, 13, 42); r('#3a4654', 89, 86, 13, 42);
   });
   // estrellitas del cielo y "puf"
   single(scene, 'puff', 4, 4, ({ r }) => { r(PAL.white, 1, 0, 2, 4); r(PAL.white, 0, 1, 4, 2); });
@@ -559,6 +719,44 @@ function drawBackgrounds(scene: Phaser.Scene): void {
     fence(r, 264, 314, g);
   });
 
+  // Santiago de Cuba: edificios coloniales de colores con balcones y la catedral al fondo
+  single(scene, 'bg-city', GAME_W, 70, ({ r }) => {
+    const g = 56; // lo de abajo queda tapado por el suelo
+    r('#9c9ca4', 0, g, GAME_W, 70 - g);
+    const walls = ['#f2c96b', '#7fc4c0', '#e8907a', '#c9a2e0', '#f4ead0', '#8fc0ec', '#f2a65a'];
+    let x = 0, i = 0;
+    while (x < GAME_W) {
+      const w = 30 + ((i * 11) % 14);
+      const floors = 2 + (i % 2);
+      const h = floors * 15 + 4;
+      if (i === 3) {
+        // catedral: dos torres con cúpula
+        r('#f4ead0', x, g - 46, w, 46); r('#d8ccae', x, g - 46, w, 2);
+        for (const tx of [x + 1, x + w - 9]) { r('#f4ead0', tx, g - 60, 8, 14); r('#c9a35a', tx + 1, g - 64, 6, 4); r('#8a6430', tx + 3, g - 67, 2, 3); }
+        r('#5c3a1a', x + w / 2 - 4, g - 16, 8, 16); r('#2e3440', x + w / 2 - 2, g - 34, 4, 8);
+      } else {
+        const c = walls[i % walls.length];
+        r(c, x, g - h, w - 1, h);
+        r('#00000022', x, g - h, w - 1, 2);
+        r(i % 2 ? '#b5523b' : '#d8ccae', x - 1, g - h - 2, w + 1, 2); // cornisa o tejado
+        for (let f = 0; f < floors; f++) {
+          const fy = g - h + 4 + f * 15;
+          for (let wx = x + 3; wx < x + w - 6; wx += 9) {
+            r('#2e3440', wx, fy, 5, 9);
+            const shutter = i % 2 ? '#2f7a3a' : '#3a62c4';
+            r(shutter, wx - 1, fy, 1, 9); r(shutter, wx + 5, fy, 1, 9); // persianas
+          }
+          if (f > 0) {
+            r('#3a3a3a', x + 1, fy + 9, w - 3, 1); // balcón
+            for (let bx = x + 2; bx < x + w - 2; bx += 3) r('#3a3a3a', bx, fy + 6, 1, 3);
+          }
+        }
+      }
+      x += w;
+      i++;
+    }
+  });
+
   single(scene, 'bg-base', GAME_W, 70, ({ r }) => {
     // cerca con alambre de púas, torre de vigilancia y barracas
     r('#4b5233', 20, 34, 70, 36); r('#3a4026', 20, 34, 70, 3); r('#2a2e1c', 40, 50, 10, 20);
@@ -593,9 +791,18 @@ export function generateTextures(scene: Phaser.Scene): void {
   const bossPoses: BossPose[] = ['idle', 'idle2', 'throw', 'charge', 'tired'];
   sheet(scene, 'boss', 40, 48, bossPoses.map((b) => (p: Painter) => drawBoss(p, b)));
 
-  const looks: [string, string][] = [['#e94f64', PAL.hair], ['#f5d142', '#9a9a9a'], ['#4fb0e9', '#5a3a1a'], ['#7bd389', PAL.hair]];
-  looks.forEach(([shirt, hair], i) =>
-    sheet(scene, `npc${i}`, 24, 24, [(p) => drawNeighbor(p, shirt, hair, false), (p) => drawNeighbor(p, shirt, hair, true)]),
+  sheet(scene, 'police', 24, 24, guardPoses.map((g) => (p: Painter) => drawPolice(p, g, '#9a5a34')));
+
+  const minintPoses: MinintPose[] = ['idle', 'idle2', 'command', 'walk', 'hurt'];
+  sheet(scene, 'boss-minint', 40, 48, minintPoses.map((m) => (p: Painter) => drawMinint(p, m)));
+
+  // vecinos: 0-3 del campo, 4-7 santiagueros (mulatos y negros)
+  const looks: [string, string, string][] = [
+    ['#e94f64', PAL.hair, PAL.skin], ['#f5d142', '#9a9a9a', PAL.skin], ['#4fb0e9', '#5a3a1a', PAL.skin], ['#7bd389', PAL.hair, PAL.skin],
+    ['#f2a65a', PAL.hair, '#8a5530'], ['#ffffff', PAL.hair, '#6e3f22'], ['#c94fd1', '#3a2414', '#a5653c'], ['#e94f64', '#9a9a9a', '#5a3018'],
+  ];
+  looks.forEach(([shirt, hair, skin], i) =>
+    sheet(scene, `npc${i}`, 24, 24, [(p) => drawNeighbor(p, shirt, hair, false, skin), (p) => drawNeighbor(p, shirt, hair, true, skin)]),
   );
 
   drawItems(scene);
@@ -611,7 +818,10 @@ export function createAnimations(scene: Phaser.Scene): void {
   a.create({ key: 'guard-walk', frames: a.generateFrameNumbers('guard', { frames: [0, 1] }), frameRate: 5, repeat: -1 });
   a.create({ key: 'guard-whistle-walk', frames: a.generateFrameNumbers('guard-whistle', { frames: [0, 1] }), frameRate: 5, repeat: -1 });
   a.create({ key: 'boss-idle', frames: a.generateFrameNumbers('boss', { frames: [0, 1] }), frameRate: 3, repeat: -1 });
-  for (let i = 0; i < 4; i++) {
+  a.create({ key: 'police-walk', frames: a.generateFrameNumbers('police', { frames: [0, 1] }), frameRate: 6, repeat: -1 });
+  a.create({ key: 'boss-minint-idle', frames: a.generateFrameNumbers('boss-minint', { frames: [0, 1] }), frameRate: 3, repeat: -1 });
+  a.create({ key: 'boss-minint-walk', frames: a.generateFrameNumbers('boss-minint', { frames: [0, 3] }), frameRate: 4, repeat: -1 });
+  for (let i = 0; i < 8; i++) {
     a.create({ key: `npc${i}-bang`, frames: a.generateFrameNumbers(`npc${i}`, { frames: [0, 1] }), frameRate: 4 + i, repeat: -1 });
   }
 }

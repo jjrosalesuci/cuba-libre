@@ -11,16 +11,21 @@
  *   K  camión con guardia G  jefe                             n  vecino con cazuela
  *   R  refrigerador       c  café   C  colada   P  cazuela   L  pan con croqueta   $  moneda
  *   F  punto de control   X  salida              1-9  disparadores de diálogo
+ *   A  auto estacionado (plataforma)   Q  quiosco de guarapo   g  vaso de guarapo
+ *
+ * 'E' crea el enemigo del nivel (guardia o policía, según `enemy`).
  */
 
-export type Speaker = 'hero' | 'vecina' | 'vecino' | 'boss' | 'radio';
+import type { GuardKind } from '../entities/Guard';
+
+export type Speaker = 'hero' | 'vecina' | 'vecino' | 'boss' | 'radio' | 'santiaguero' | 'oficial';
 
 export interface Line {
   who: Speaker;
   text: string;
 }
 
-export type Theme = 'rural' | 'town' | 'base' | 'hq';
+export type Theme = 'rural' | 'town' | 'base' | 'hq' | 'city';
 
 export interface LevelConfig {
   id: string;
@@ -34,7 +39,9 @@ export interface LevelConfig {
   dialogs: Record<string, Line[]>;
   /** Columna hasta donde dura el apagón (oscuridad) al inicio del nivel. */
   blackoutUntilCol?: number;
-  boss?: 'guantanamo';
+  boss?: 'guantanamo' | 'minint';
+  /** Enemigo que crea 'E' (por defecto, el guardia patrullero). */
+  enemy?: GuardKind;
   next?: string;
 }
 
@@ -130,6 +137,44 @@ const l13 = new MapBuilder(20)
   .put('c', 1, 9)
   .put('G', 16);
 
+// ------------------------------------------------------------------ 2-1 Calles de Santiago
+
+const l21 = new MapBuilder(134)
+  .ground(0, 133)
+  .put('S', 2).put('1', 4)
+  .put('n', 8).put('n', 11)
+  .put('Q', 14).put('g', 19)
+  .put('E', 25)
+  .put('A', 29).row('$', 30, 31, 7)
+  // calle en cuesta hacia arriba
+  .ground(35, 50, 9).ground(39, 50, 8)
+  .row('=', 36, 39, 5).row('$', 36, 39, 4)
+  .put('E', 46, 7)
+  .put('n', 52)
+  .pit(56, 58)
+  .put('A', 61)
+  .put('E', 66)
+  .put('F', 69).put('2', 71)
+  .put('Q', 74).put('g', 79)
+  .put('n', 81).put('E', 85).put('E', 90)
+  // otra loma, más empinada
+  .ground(93, 106, 9).ground(96, 106, 8).ground(99, 106, 7)
+  .put('E', 103, 6).put('P', 97, 7)
+  .row('=', 107, 111, 7).row('$', 108, 110, 6)
+  .put('A', 114).put('E', 120).put('C', 115, 7)
+  .row('$', 123, 126, 8)
+  .put('3', 127)
+  .put('X', 130);
+
+// ------------------------------------------------------------------ 2-2 Jefe: el oficial del MININT
+
+const l22 = new MapBuilder(20)
+  .ground(0, 19)
+  .fill('H', 0, 0, 0, 9).fill('H', 19, 19, 0, 9)
+  .put('S', 2).put('1', 3)
+  .put('g', 1, 9)
+  .put('G', 16);
+
 export const LEVELS: Record<string, LevelConfig> = {
   '1-1': {
     id: '1-1',
@@ -193,7 +238,54 @@ export const LEVELS: Record<string, LevelConfig> = {
       ],
     },
   },
+  '2-1': {
+    id: '2-1',
+    province: 'santiago',
+    title: 'SANTIAGO 2-1',
+    subtitle: 'CALLES DE SANTIAGO',
+    theme: 'city',
+    sky: 'day',
+    music: 'level',
+    enemy: 'police',
+    rows: l21.build(),
+    next: '2-2',
+    dialogs: {
+      '1': [
+        { who: 'hero', text: 'Santiago de Cuba. Tierra caliente.' },
+        { who: 'santiaguero', text: '¡Oye, asere! La policía anda repartiendo tonfazos en cada esquina.' },
+        { who: 'hero', text: 'Pues que se preparen. Pero primero un guarapo bien frío.' },
+      ],
+      '2': [{ who: 'santiaguero', text: '¡Dale, que Santiago está contigo!' }],
+      '3': [{ who: 'hero', text: 'Ese edificio gris... el MININT. Ahí está el que manda a los azules.' }],
+    },
+  },
+  '2-2': {
+    id: '2-2',
+    province: 'santiago',
+    title: 'SANTIAGO 2-2',
+    subtitle: 'EL EDIFICIO DEL MININT',
+    theme: 'city',
+    sky: 'day',
+    music: 'boss',
+    enemy: 'police',
+    rows: l22.build(),
+    boss: 'minint',
+    dialogs: {
+      '1': [
+        { who: 'oficial', text: '¡Alto ahí! ¡Documentos!' },
+        { who: 'oficial', text: '¡Patrulla! ¡Arresten a ese elemento!' },
+        { who: 'hero', text: 'Manda a los que quieras, que yo vengo con el palo.' },
+      ],
+    },
+  },
 };
+
+/** Niveles de una provincia en orden, siguiendo la cadena `next` desde el primero. */
+export function provinceLevels(firstLevel: string): string[] {
+  const ids: string[] = [];
+  for (let id: string | undefined = firstLevel; id && LEVELS[id] && !ids.includes(id); id = LEVELS[id].next) ids.push(id);
+  return ids;
+}
 
 export const SPEAKER_NAMES: Record<Speaker, string> = {
   hero: 'TÚ',
@@ -201,4 +293,6 @@ export const SPEAKER_NAMES: Record<Speaker, string> = {
   vecino: 'VECINO',
   boss: 'SECRETARIO',
   radio: 'RADIO',
+  santiaguero: 'SANTIAGUERO',
+  oficial: 'OFICIAL',
 };

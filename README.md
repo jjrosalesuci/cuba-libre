@@ -36,6 +36,13 @@ Compartir → "Agregar a inicio" y abrirlo desde el ícono (el manifest lo abre 
 Se juega en horizontal; en vertical pide girar el teléfono.
 Para probar los controles táctiles en la computadora: abrir `http://localhost:5173/?touch`.
 
+## Progreso guardado
+
+El progreso se guarda en el `localStorage` del navegador (clave `dopc-save-v1`) cada vez que se completa un nivel:
+niveles completados, provincias liberadas, récord y volumen. En el mapa, una provincia a medias continúa en el primer
+nivel que falte ("Enter: seguir en 1-2"); una liberada se puede rejugar desde el principio, y al vencer al jefe se
+desbloquea la siguiente provincia. El progreso es por navegador y por dispositivo.
+
 ## Estructura
 
 ```

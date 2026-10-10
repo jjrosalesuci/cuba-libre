@@ -14,6 +14,51 @@ export interface BossArena {
 
 type Mode = 'idle' | 'throw' | 'leap' | 'brace' | 'charge' | 'tired' | 'dying';
 
+/** Salto en arco de un jefe hasta (x, y). No llama a `done` si el jefe murió en el aire. */
+export function leapArc(sprite: Phaser.GameObjects.Sprite, x: number, y: number, isDying: () => boolean, done: () => void): void {
+  const x0 = sprite.x, y0 = sprite.y;
+  const height = 50;
+  sprite.scene.tweens.addCounter({
+    from: 0,
+    to: 1,
+    duration: 750,
+    onUpdate: (tw) => {
+      const t = tw.getValue();
+      sprite.x = Phaser.Math.Linear(x0, x, t);
+      sprite.y = Phaser.Math.Linear(y0, y, t) - Math.sin(Math.PI * t) * height;
+    },
+    onComplete: () => {
+      if (!isDying()) done();
+    },
+  });
+}
+
+/** Derrota de un jefe: gira, se encoge entre humo y desaparece; emite 'defeated'. */
+export function bossDeath(sprite: Phaser.Physics.Arcade.Sprite, frame: number): void {
+  const scene = sprite.scene;
+  (sprite.body as Phaser.Physics.Arcade.Body).enable = false;
+  sprite.anims.stop();
+  sprite.setFrame(frame).clearTint();
+  scene.cameras.main.shake(400, 0.01);
+  sprite.setOrigin(0.5, 0.5);
+  sprite.y -= 24;
+  scene.tweens.add({
+    targets: sprite,
+    angle: 1080,
+    scale: 0.2,
+    y: sprite.y - 30,
+    duration: 1400,
+    ease: 'Quad.easeIn',
+    onUpdate: () => Math.random() < 0.3 && puff(scene, sprite.x, sprite.y, 3, 0xbbbbbb),
+    onComplete: () => {
+      sfx('puff');
+      puff(scene, sprite.x, sprite.y, 24, 0xdddddd);
+      sprite.emit('defeated');
+      sprite.destroy();
+    },
+  });
+}
+
 /**
  * Jefe de Guantánamo: el Secretario Provincial.
  * Ciclo: lanza "DISCURSOS" desde el balcón → salta y embiste → choca contra la
@@ -55,6 +100,11 @@ export class BossGuantanamo extends Phaser.Physics.Arcade.Sprite {
 
   get harmful(): boolean {
     return (this.mode === 'leap' && this.leapHarmful) || this.mode === 'charge' || this.mode === 'brace';
+  }
+
+  /** Solo se le puede hacer daño cuando está cansado. */
+  get vulnerable(): boolean {
+    return this.mode === 'tired';
   }
 
   start(time: number): void {
@@ -133,22 +183,9 @@ export class BossGuantanamo extends Phaser.Physics.Arcade.Sprite {
     this.anims.stop();
     this.setFrame(BOSS_FRAMES.charge);
     this.setFlipX(x < this.x || x === this.x);
-    const x0 = this.x, y0 = this.y;
-    const height = 50;
-    this.scene.tweens.addCounter({
-      from: 0,
-      to: 1,
-      duration: 750,
-      onUpdate: (tw) => {
-        const t = tw.getValue();
-        this.x = Phaser.Math.Linear(x0, x, t);
-        this.y = Phaser.Math.Linear(y0, y, t) - Math.sin(Math.PI * t) * height;
-      },
-      onComplete: () => {
-        if (this.mode === 'dying') return;
-        this.setFlipX(true);
-        done();
-      },
+    leapArc(this, x, y, () => this.mode === 'dying', () => {
+      this.setFlipX(true);
+      done();
     });
   }
 
@@ -206,26 +243,6 @@ export class BossGuantanamo extends Phaser.Physics.Arcade.Sprite {
   private die(): void {
     this.mode = 'dying';
     this.showStars(false);
-    this.body.enable = false;
-    this.anims.stop();
-    this.setFrame(BOSS_FRAMES.tired).clearTint();
-    this.scene.cameras.main.shake(400, 0.01);
-    this.setOrigin(0.5, 0.5);
-    this.y -= 24;
-    this.scene.tweens.add({
-      targets: this,
-      angle: 1080,
-      scale: 0.2,
-      y: this.y - 30,
-      duration: 1400,
-      ease: 'Quad.easeIn',
-      onUpdate: () => Math.random() < 0.3 && puff(this.scene, this.x, this.y, 3, 0xbbbbbb),
-      onComplete: () => {
-        sfx('puff');
-        puff(this.scene, this.x, this.y, 24, 0xdddddd);
-        this.emit('defeated');
-        this.destroy();
-      },
-    });
+    bossDeath(this, BOSS_FRAMES.tired);
   }
 }

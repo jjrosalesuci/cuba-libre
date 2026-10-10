@@ -3,11 +3,12 @@ import { GAME_W, GAME_H, TILE } from '../config';
 import { LEVELS, LevelConfig } from '../data/levels';
 import { list, t } from '../i18n';
 import { Hero } from '../entities/Hero';
-import { Guard, GUARD_TYPES } from '../entities/Guard';
+import { Guard, GUARD_TYPES, GuardStats } from '../entities/Guard';
 import { BossGuantanamo } from '../entities/Boss';
+import { BossMinint } from '../entities/BossMinint';
 import { InputManager } from '../systems/InputManager';
 import { playMusic, sfx, stopMusic } from '../systems/AudioManager';
-import { liberate } from '../systems/SaveManager';
+import { completeLevel, liberate } from '../systems/SaveManager';
 import { ITEM_FRAMES, TILES } from '../systems/Textures';
 import { HUD } from '../ui/HUD';
 import { DialogBox } from '../ui/DialogBox';
@@ -20,8 +21,10 @@ export interface LevelData {
   triggered?: string[];
 }
 
-type PickupKind = 'cafe' | 'colada' | 'cazuela' | 'croqueta' | 'coin';
-const PICKUPS: Record<string, PickupKind> = { c: 'cafe', C: 'colada', P: 'cazuela', L: 'croqueta', $: 'coin' };
+type PickupKind = 'cafe' | 'colada' | 'cazuela' | 'croqueta' | 'coin' | 'guarapo';
+const PICKUPS: Record<string, PickupKind> = { c: 'cafe', C: 'colada', P: 'cazuela', L: 'croqueta', $: 'coin', g: 'guarapo' };
+
+type LevelBoss = BossGuantanamo | BossMinint;
 
 interface Truck {
   img: Phaser.Physics.Arcade.Image;
@@ -46,11 +49,13 @@ export class LevelScene extends Phaser.Scene {
   private papers!: Phaser.Physics.Arcade.Group;
   private pickups!: Phaser.Physics.Arcade.Group;
   private trucks: Truck[] = [];
+  /** Obstáculos sólidos que no son tiles: camiones y autos (se puede pisar encima). */
+  private solids!: Phaser.Physics.Arcade.StaticGroup;
   private flags: Flag[] = [];
   private npcs: Phaser.GameObjects.Sprite[] = [];
   private triggers: { x: number; key: string }[] = [];
   private triggered = new Set<string>();
-  private boss?: BossGuantanamo;
+  private boss?: LevelBoss;
   private bossStarted = false;
   private hud!: HUD;
   private dialog!: DialogBox;
@@ -110,10 +115,8 @@ export class LevelScene extends Phaser.Scene {
 
     this.physics.add.collider(this.hero, this.layer);
     this.physics.add.collider(this.guards, this.layer);
-    for (const tr of this.trucks) {
-      this.physics.add.collider(this.hero, tr.img);
-      this.physics.add.collider(this.guards, tr.img);
-    }
+    this.physics.add.collider(this.hero, this.solids);
+    this.physics.add.collider(this.guards, this.solids);
     this.physics.add.collider(this.papers, this.layer, (p) => this.popPaper(p as Phaser.Physics.Arcade.Image));
     this.physics.add.overlap(this.hero, this.pickups, (_h, p) => this.collect(p as Phaser.Physics.Arcade.Image));
     this.physics.add.overlap(this.hero, this.guards, (_h, g) => {
@@ -167,7 +170,7 @@ export class LevelScene extends Phaser.Scene {
     }
     const mountains = this.add.tileSprite(0, 62, GAME_W, 90, 'bg-mountains').setOrigin(0).setScrollFactor(0).setDepth(-18);
     this.parallax.push({ obj: mountains, f: 0.15 });
-    const nearKey = { rural: 'bg-rural', base: 'bg-base', town: 'bg-town', hq: 'bg-town' }[cfg.theme];
+    const nearKey = { rural: 'bg-rural', base: 'bg-base', town: 'bg-town', hq: 'bg-town', city: 'bg-city' }[cfg.theme];
     const near = this.add.tileSprite(0, 92, GAME_W, 70, nearKey).setOrigin(0).setScrollFactor(0).setDepth(-17);
     this.parallax.push({ obj: near, f: 0.4 });
   }
@@ -175,12 +178,14 @@ export class LevelScene extends Phaser.Scene {
   private buildMap(): { start: { x: number; y: number }; bossAt?: { x: number; y: number } } {
     const cfg = this.cfg;
     const rows = cfg.rows;
-    const base = cfg.theme === 'base';
+    // suelo de concreto en la base militar y en la ciudad
+    const base = cfg.theme === 'base' || cfg.theme === 'city';
     const data: number[][] = [];
     let start = { x: 32, y: 160 };
     let bossAt: { x: number; y: number } | undefined;
 
     this.guards = this.add.group();
+    this.solids = this.physics.add.staticGroup();
     this.papers = this.physics.add.group();
     this.pickups = this.physics.add.group({ allowGravity: false, immovable: true });
     this.mapH = rows.length * TILE;
@@ -219,15 +224,25 @@ export class LevelScene extends Phaser.Scene {
       const px = x * TILE + TILE / 2;
       const bottom = (y + 1) * TILE;
       if (ch === 'S') start = { x: px, y: bottom };
-      else if (ch === 'E' || ch === 'W') this.spawnGuard(px, bottom, ch === 'W');
+      else if (ch === 'E') this.spawnGuard(px, bottom, this.enemyStats);
+      else if (ch === 'W') this.spawnGuard(px, bottom, GUARD_TYPES.whistle);
       else if (ch === 'K') {
-        const img = this.physics.add.staticImage(x * TILE, bottom, 'truck').setOrigin(0, 1).setDepth(5);
-        img.refreshBody();
+        const img = this.solids.create(x * TILE, bottom, 'truck') as Phaser.Physics.Arcade.Image;
+        img.setOrigin(0, 1).setDepth(5).refreshBody();
         (img.body as Phaser.Physics.Arcade.StaticBody).setSize(52, 22).setOffset(2, 4);
         this.trucks.push({ img, spawned: false });
+      } else if (ch === 'A') {
+        // almendrón estacionado: obstáculo y plataforma
+        const car = this.solids.create(x * TILE, bottom, `car${Phaser.Math.Between(0, 3)}`) as Phaser.Physics.Arcade.Image;
+        car.setOrigin(0, 1).setDepth(5).setFlipX(Math.random() < 0.5).refreshBody();
+        (car.body as Phaser.Physics.Arcade.StaticBody).setSize(44, 18).setOffset(2, 4);
+      } else if (ch === 'Q') {
+        this.add.image(x * TILE, bottom, 'kiosk').setOrigin(0, 1).setDepth(3);
+        txt(this, x * TILE + 32, bottom - 44 + 12, 'GUARAPO', { origin: 0.5, color: '#f5d142' }).setDepth(3);
       } else if (ch === 'G') bossAt = { x: px, y: bottom };
       else if (ch === 'n') {
-        const v = Phaser.Math.Between(0, 3);
+        // en la ciudad, santiagueros (variantes 4-7); en el campo, guajiros (0-3)
+        const v = Phaser.Math.Between(0, 3) + (cfg.theme === 'city' ? 4 : 0);
         const npc = this.add.sprite(px, bottom, `npc${v}`).setOrigin(0.5, 1).setDepth(4).setFlipX(Math.random() < 0.5);
         npc.anims.play(`npc${v}-bang`);
         this.npcs.push(npc);
@@ -251,15 +266,20 @@ export class LevelScene extends Phaser.Scene {
     return { start, bossAt };
   }
 
-  private spawnGuard(x: number, bottom: number, whistle: boolean): Guard {
-    const g = new Guard(this, x, bottom, whistle ? GUARD_TYPES.whistle : GUARD_TYPES.patrol, this.layer);
+  /** Enemigo de este nivel ('E' en el mapa): guardias en Guantánamo, policías en Santiago. */
+  private get enemyStats(): GuardStats {
+    return GUARD_TYPES[this.cfg.enemy ?? 'patrol'];
+  }
+
+  private spawnGuard(x: number, bottom: number, stats: GuardStats): Guard {
+    const g = new Guard(this, x, bottom, stats, this.layer);
     this.guards.add(g);
     g.on('whistle', (w: Guard) => {
       // refuerzo que cae desde arriba, detrás del del silbato
       const side = w.x > this.hero.x ? 1 : -1;
       this.time.delayedCall(500, () => {
         if (this.ending) return;
-        const r = this.spawnGuard(w.x + side * 36, w.y - 70, false);
+        const r = this.spawnGuard(w.x + side * 36, w.y - 70, this.enemyStats);
         r.mode = 'chase';
       });
     });
@@ -267,15 +287,26 @@ export class LevelScene extends Phaser.Scene {
   }
 
   private setupBoss(): void {
-    this.add.image(136, 32, 'hq').setOrigin(0).setDepth(-5);
-    this.boss = new BossGuantanamo(this, { balconyX: 232, balconyY: 92, groundY: this.mapH - 2 * TILE, leftX: 44 }, this.papers);
+    const arena = { balconyX: 232, balconyY: 92, groundY: this.mapH - 2 * TILE, leftX: 44 };
+    if (this.cfg.boss === 'minint') {
+      this.add.image(136, 32, 'minint').setOrigin(0).setDepth(-5);
+      txt(this, 136 + 88, 32 + 8, 'MININT', { origin: 0.5, color: '#f5d142' }).setDepth(-4);
+      this.boss = new BossMinint(this, { ...arena, doorX: 224, rightX: 290 }, (x, y) => {
+        const g = this.spawnGuard(x, y, GUARD_TYPES.police);
+        g.mode = 'chase';
+        return g;
+      });
+    } else {
+      this.add.image(136, 32, 'hq').setOrigin(0).setDepth(-5);
+      this.boss = new BossGuantanamo(this, arena, this.papers);
+    }
     this.physics.add.overlap(this.hero, this.boss, () => {
       const boss = this.boss;
       if (!boss?.active) return;
-      // al jefe no se le mata de un pisotón: rebota, y si está cansado le quita 1 de vida
+      // al jefe no se le mata de un pisotón: rebota, y si está vulnerable le quita 1 de vida
       if (this.hero.isLandingOn(boss.body)) {
         this.hero.pogo();
-        if (boss.mode === 'tired' && boss.takeHit(-this.time.now, 1)) this.addScore(50);
+        if (boss.vulnerable && boss.takeHit(-this.time.now, 1)) this.addScore(50);
         return;
       }
       if (boss.harmful) this.hero.hurt(boss.x, 1, this.time.now);
@@ -454,7 +485,7 @@ export class LevelScene extends Phaser.Scene {
   private startBoss(): void {
     if (this.bossStarted || !this.boss) return;
     this.bossStarted = true;
-    this.hud.showBoss(t('bossName'));
+    this.hud.showBoss(t(this.cfg.boss === 'minint' ? 'bossNameMinint' : 'bossName'));
     playMusic('boss');
     this.boss.start(this.time.now);
   }
@@ -475,7 +506,7 @@ export class LevelScene extends Phaser.Scene {
       if (tr.spawned || Math.abs(this.hero.x - (tr.img.x + 28)) > 150) continue;
       tr.spawned = true;
       // el guardia salta de la parte de atrás de la lona
-      const g = this.spawnGuard(tr.img.x + 6, tr.img.y - 30, false);
+      const g = this.spawnGuard(tr.img.x + 6, tr.img.y - 30, GUARD_TYPES.patrol);
       g.body.velocity.set(-50, -180);
       g.mode = 'chase';
       sfx('whistle');
@@ -487,6 +518,7 @@ export class LevelScene extends Phaser.Scene {
     const h = this.hero;
     switch (kind) {
       case 'cafe': h.heal(2); floatText(this, p.x, p.y - 10, t('cafe'), '#f5d142'); sfx('pickup'); break;
+      case 'guarapo': h.heal(2); floatText(this, p.x, p.y - 10, t('guarapo'), '#c8d84a'); sfx('pickup'); break;
       case 'colada': h.heal(99); floatText(this, p.x, p.y - 10, t('colada'), '#f5d142'); sfx('pickup'); break;
       case 'cazuela': h.shield = true; floatText(this, p.x, p.y - 10, t('cazuela'), '#c4c4cc'); sfx('pickup'); break;
       case 'croqueta':
@@ -541,6 +573,8 @@ export class LevelScene extends Phaser.Scene {
 
   private completeLevel(): void {
     this.ending = true;
+    // progreso guardado en el navegador en cuanto se termina el nivel
+    completeLevel(this.cfg.id, this.registry.get('score'));
     this.hero.body.velocity.x = 0;
     sfx('clear');
     stopMusic();
@@ -556,6 +590,7 @@ export class LevelScene extends Phaser.Scene {
     this.addScore(5000);
     stopMusic();
     sfx('clear');
+    completeLevel(this.cfg.id, this.registry.get('score'));
     liberate(this.cfg.province, this.registry.get('score'));
     for (const p of this.papers.getChildren() as Phaser.Physics.Arcade.Image[]) puff(this, p.x, p.y, 4);
     this.papers.clear(true, true);

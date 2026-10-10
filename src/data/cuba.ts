@@ -23,7 +23,7 @@ export interface Province {
 /** En orden de juego: de oriente a occidente. */
 export const PROVINCES: Province[] = [
   { id: 'guantanamo', name: 'GUANTÁNAMO', lon: -75.2, lat: 20.2, firstLevel: '1-1' },
-  { id: 'santiago', name: 'SANTIAGO DE CUBA', lon: -75.85, lat: 20.1 },
+  { id: 'santiago', name: 'SANTIAGO DE CUBA', lon: -75.85, lat: 20.1, firstLevel: '2-1' },
   { id: 'granma', name: 'GRANMA', lon: -76.8, lat: 20.3 },
   { id: 'holguin', name: 'HOLGUÍN', lon: -75.95, lat: 20.8 },
   { id: 'lastunas', name: 'LAS TUNAS', lon: -76.95, lat: 21.0 },
